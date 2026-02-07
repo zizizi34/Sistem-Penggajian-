@@ -10,7 +10,7 @@
                 <h1 class="page-title">Data Pegawai</h1>
             </div>
             <div class="col-lg-6 text-end">
-                <a href="{{ route('administrator.pegawai.create') }}" class="btn btn-primary">
+                <a href="{{ route('administrators.pegawai.create') }}" class="btn btn-primary">
                     <i class="fe fe-plus me-2"></i>Tambah Pegawai
                 </a>
             </div>
@@ -51,10 +51,10 @@
                                                 <td>{{ $item->jabatan->nama_jabatan ?? '-' }}</td>
                                                 <td>Rp {{ number_format($item->gaji_pokok, 0, ',', '.') }}</td>
                                                 <td>
-                                                    <a href="{{ route('administrator.pegawai.edit', $item->id_pegawai) }}" class="btn btn-sm btn-info">
+                                                    <a href="{{ route('administrators.pegawai.edit', $item->id_pegawai) }}" class="btn btn-sm btn-info">
                                                         <i class="fe fe-edit"></i>
                                                     </a>
-                                                    <form action="{{ route('administrator.pegawai.destroy', $item->id_pegawai) }}" method="POST" style="display:inline;">
+                                                    <form action="{{ route('administrators.pegawai.destroy', $item->id_pegawai) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
@@ -69,7 +69,7 @@
                             </div>
                         @else
                             <div class="alert alert-info">
-                                Belum ada data pegawai. <a href="{{ route('administrator.pegawai.create') }}">Tambah data pegawai</a>
+                                Belum ada data pegawai. <a href="{{ route('administrators.pegawai.create') }}">Tambah data pegawai</a>
                             </div>
                         @endif
                     </div>

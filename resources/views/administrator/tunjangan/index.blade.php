@@ -10,7 +10,7 @@
                 <h1 class="page-title">Data Tunjangan</h1>
             </div>
             <div class="col-lg-6 text-end">
-                <a href="{{ route('administrator.tunjangan.create') }}" class="btn btn-primary">
+                <a href="{{ route('administrators.tunjangan.create') }}" class="btn btn-primary">
                     <i class="fe fe-plus me-2"></i>Tambah Tunjangan
                 </a>
             </div>
@@ -47,10 +47,10 @@
                                                 <td>Rp {{ number_format($item->nominal_tunjangan, 0, ',', '.') }}</td>
                                                 <td>{{ $item->deskripsi_tunjangan ?? '-' }}</td>
                                                 <td>
-                                                    <a href="{{ route('administrator.tunjangan.edit', $item->id_tunjangan) }}" class="btn btn-sm btn-info">
+                                                    <a href="{{ route('administrators.tunjangan.edit', $item->id_tunjangan) }}" class="btn btn-sm btn-info">
                                                         <i class="fe fe-edit"></i>
                                                     </a>
-                                                    <form action="{{ route('administrator.tunjangan.destroy', $item->id_tunjangan) }}" method="POST" style="display:inline;">
+                                                    <form action="{{ route('administrators.tunjangan.destroy', $item->id_tunjangan) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
@@ -65,7 +65,7 @@
                             </div>
                         @else
                             <div class="alert alert-info">
-                                Belum ada data tunjangan. <a href="{{ route('administrator.tunjangan.create') }}">Tambah data tunjangan</a>
+                                Belum ada data tunjangan. <a href="{{ route('administrators.tunjangan.create') }}">Tambah data tunjangan</a>
                             </div>
                         @endif
                     </div>

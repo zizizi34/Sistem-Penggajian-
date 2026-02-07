@@ -13,16 +13,19 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasPermissions;
 
+    protected $table = 'user';
+    protected $primaryKey = 'id_user';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'email_user',
+        'password_user',
         'id_role',
+        'id_pegawai',
     ];
 
     /**
@@ -31,8 +34,7 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password_user',
     ];
 
     /**
@@ -41,7 +43,8 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -51,4 +54,37 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class, 'id_role', 'id_role');
     }
+
+    /**
+     * Get the password attribute for authentication
+     */
+    public function getAuthPassword()
+    {
+        return $this->password_user;
+    }
+
+    /**
+     * Get the unique identifier for the user
+     */
+    public function getAuthIdentifier()
+    {
+        return $this->id_user;
+    }
+
+    /**
+     * Get the unique identifier name for the user
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'id_user';
+    }
+
+    /**
+     * Get the email address of the user
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email_user;
+    }
 }
+

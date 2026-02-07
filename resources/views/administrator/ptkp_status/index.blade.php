@@ -10,7 +10,7 @@
                 <h1 class="page-title">Data Status PTKP</h1>
             </div>
             <div class="col-lg-6 text-end">
-                <a href="{{ route('administrator.ptkp_status.create') }}" class="btn btn-primary">
+                <a href="{{ route('administrators.ptkp_status.create') }}" class="btn btn-primary">
                     <i class="fe fe-plus me-2"></i>Tambah PTKP
                 </a>
             </div>
@@ -47,10 +47,10 @@
                                                 <td>{{ $item->deskripsi_ptkp ?? '-' }}</td>
                                                 <td>Rp {{ number_format($item->nilai_ptkp, 0, ',', '.') }}</td>
                                                 <td>
-                                                    <a href="{{ route('administrator.ptkp_status.edit', $item->id_ptkp_status) }}" class="btn btn-sm btn-info">
+                                                    <a href="{{ route('administrators.ptkp_status.edit', $item->id_ptkp_status) }}" class="btn btn-sm btn-info">
                                                         <i class="fe fe-edit"></i>
                                                     </a>
-                                                    <form action="{{ route('administrator.ptkp_status.destroy', $item->id_ptkp_status) }}" method="POST" style="display:inline;">
+                                                    <form action="{{ route('administrators.ptkp_status.destroy', $item->id_ptkp_status) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
@@ -65,7 +65,7 @@
                             </div>
                         @else
                             <div class="alert alert-info">
-                                Belum ada data PTKP. <a href="{{ route('administrator.ptkp_status.create') }}">Tambah data PTKP</a>
+                                Belum ada data PTKP. <a href="{{ route('administrators.ptkp_status.create') }}">Tambah data PTKP</a>
                             </div>
                         @endif
                     </div>

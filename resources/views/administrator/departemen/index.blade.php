@@ -10,7 +10,7 @@
                 <h1 class="page-title">Data Departemen</h1>
             </div>
             <div class="col-lg-6 text-end">
-                <a href="{{ route('administrator.departemen.create') }}" class="btn btn-primary">
+             <a href="{{ route('administrators.departemen.create') }}" class="btn btn-primary">
                     <i class="fe fe-plus me-2"></i>Tambah Departemen
                 </a>
             </div>
@@ -45,10 +45,10 @@
                                                 <td>{{ $item->nama_departemen }}</td>
                                                 <td>{{ $item->deskripsi_departemen ?? '-' }}</td>
                                                 <td>
-                                                    <a href="{{ route('administrator.departemen.edit', $item->id_departemen) }}" class="btn btn-sm btn-info">
+                                                    <a href="{{ route('administrators.departemen.edit', $item->id_departemen) }}" class="btn btn-sm btn-info">
                                                         <i class="fe fe-edit"></i>
                                                     </a>
-                                                    <form action="{{ route('administrator.departemen.destroy', $item->id_departemen) }}" method="POST" style="display:inline;">
+                                                    <form action="{{ route('administrators.departemen.destroy', $item->id_departemen) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
@@ -63,7 +63,7 @@
                             </div>
                         @else
                             <div class="alert alert-info">
-                                Belum ada data departemen. <a href="{{ route('administrator.departemen.create') }}">Tambah data departemen</a>
+                                Belum ada data departemen. <a href="{{ route('administrators.departemen.create') }}">Tambah data departemen</a>
                             </div>
                         @endif
                     </div>

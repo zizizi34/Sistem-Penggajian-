@@ -23,27 +23,24 @@ class CreateSuperAdminSeeder extends Seeder
             return;
         }
 
-        // Cek apakah user super admin sudah ada
-        $superAdminUser = DB::table('users')->where('email', 'superadmin@gmail.com')->first();
+        // Cek apakah user super admin sudah ada di tabel 'user'
+        $superAdminUser = DB::table('user')->where('email_user', 'superadmin@gmail.com')->first();
         
         if ($superAdminUser) {
             // Update password
-            DB::table('users')
-                ->where('email', 'superadmin@gmail.com')
+            DB::table('user')
+                ->where('email_user', 'superadmin@gmail.com')
                 ->update([
-                    'password' => Hash::make('12345678'),
+                    'password_user' => Hash::make('12345678'),
                     'id_role' => $superAdminRole->id_role,
-                    'name' => 'Super Admin',
                     'updated_at' => now()
                 ]);
             $this->command->line('✓ User Super Admin diperbaharui: superadmin@gmail.com');
         } else {
             // Buat user baru
-            DB::table('users')->insert([
-                'name' => 'Super Admin',
-                'email' => 'superadmin@gmail.com',
-                'email_verified_at' => now(),
-                'password' => Hash::make('12345678'),
+            DB::table('user')->insert([
+                'email_user' => 'superadmin@gmail.com',
+                'password_user' => Hash::make('12345678'),
                 'id_role' => $superAdminRole->id_role,
                 'created_at' => now(),
                 'updated_at' => now()

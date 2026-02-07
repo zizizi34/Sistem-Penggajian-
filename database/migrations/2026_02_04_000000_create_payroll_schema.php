@@ -8,21 +8,7 @@ class CreatePayrollSchema extends Migration
 {
     public function up()
     {
-        Schema::create('role', function (Blueprint $table) {
-            $table->bigIncrements('id_role');
-            $table->string('nama_role');
-            $table->text('deskripsi_role')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('role_permission', function (Blueprint $table) {
-            $table->bigIncrements('id_role_permission');
-            $table->unsignedBigInteger('id_role');
-            $table->string('status')->nullable();
-            $table->timestamps();
-
-            $table->foreign('id_role')->references('id_role')->on('role')->onDelete('cascade');
-        });
+        // Skip role and role_permission - they're already created by 2024_01_01_000100_create_role_permission_tables
 
         Schema::create('departemen', function (Blueprint $table) {
             $table->bigIncrements('id_departemen');
@@ -179,7 +165,6 @@ class CreatePayrollSchema extends Migration
         Schema::dropIfExists('jabatan');
         Schema::dropIfExists('ptkp_status');
         Schema::dropIfExists('departemen');
-        Schema::dropIfExists('role_permission');
-        Schema::dropIfExists('role');
+        // Don't drop role and role_permission - they're managed by 2024_01_01_000100_create_role_permission_tables
     }
 }

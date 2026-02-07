@@ -10,7 +10,7 @@
                 <h1 class="page-title">Data Potongan</h1>
             </div>
             <div class="col-lg-6 text-end">
-                <a href="{{ route('administrator.potongan.create') }}" class="btn btn-primary">
+                <a href="{{ route('administrators.potongan.create') }}" class="btn btn-primary">
                     <i class="fe fe-plus me-2"></i>Tambah Potongan
                 </a>
             </div>
@@ -47,10 +47,10 @@
                                                 <td>Rp {{ number_format($item->nominal_potongan, 0, ',', '.') }}</td>
                                                 <td>{{ $item->deskripsi_potongan ?? '-' }}</td>
                                                 <td>
-                                                    <a href="{{ route('administrator.potongan.edit', $item->id_potongan) }}" class="btn btn-sm btn-info">
+                                                    <a href="{{ route('administrators.potongan.edit', $item->id_potongan) }}" class="btn btn-sm btn-info">
                                                         <i class="fe fe-edit"></i>
                                                     </a>
-                                                    <form action="{{ route('administrator.potongan.destroy', $item->id_potongan) }}" method="POST" style="display:inline;">
+                                                    <form action="{{ route('administrators.potongan.destroy', $item->id_potongan) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
@@ -65,7 +65,7 @@
                             </div>
                         @else
                             <div class="alert alert-info">
-                                Belum ada data potongan. <a href="{{ route('administrator.potongan.create') }}">Tambah data potongan</a>
+                                Belum ada data potongan. <a href="{{ route('administrators.potongan.create') }}">Tambah data potongan</a>
                             </div>
                         @endif
                     </div>

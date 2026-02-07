@@ -295,23 +295,23 @@ class RoleAndPermissionSeeder extends Seeder
         $roles = [
             [
                 'nama_role' => 'Super Admin',
-                'deskripsi_role' => 'Super Administrator - Akses penuh ke seluruh sistem'
+                'deskripsi' => 'Super Administrator - Akses penuh ke seluruh sistem'
             ],
             [
                 'nama_role' => 'Admin HRD',
-                'deskripsi_role' => 'Administrator HR - Kelola semua aspek HR dan gaji'
+                'deskripsi' => 'Administrator HR - Kelola semua aspek HR dan gaji'
             ],
             [
                 'nama_role' => 'Manager',
-                'deskripsi_role' => 'Manager - Kelola departemen dan member, approve absensi/lembur'
+                'deskripsi' => 'Manager - Kelola departemen dan member, approve absensi/lembur'
             ],
             [
                 'nama_role' => 'Direktur',
-                'deskripsi_role' => 'Direktur - Monitoring dan approval gaji'
+                'deskripsi' => 'Direktur - Monitoring dan approval gaji'
             ],
             [
                 'nama_role' => 'Pegawai',
-                'deskripsi_role' => 'Pegawai - Hanya lihat data pribadi dan slip gaji'
+                'deskripsi' => 'Pegawai - Hanya lihat data pribadi dan slip gaji'
             ],
         ];
 

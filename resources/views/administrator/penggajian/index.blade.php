@@ -10,7 +10,7 @@
                 <h1 class="page-title">Data Penggajian</h1>
             </div>
             <div class="col-lg-6 text-end">
-                <a href="{{ route('administrator.penggajian.create') }}" class="btn btn-primary">
+                <a href="{{ Route::has('administrators.penggajian.create') ? route('administrators.penggajian.create') : '#' }}" class="btn btn-primary">
                     <i class="fe fe-plus me-2"></i>Hitung Gaji
                 </a>
             </div>
@@ -45,27 +45,29 @@
                                             <tr>
                                                 <td>{{ $item->id_penggajian }}</td>
                                                 <td>{{ $item->pegawai->nama_pegawai ?? '-' }}</td>
-                                                <td>{{ $item->periode_penggajian ?? '-' }}</td>
+                                                <td>{{ $item->periode ?? '-' }}</td>
                                                 <td>Rp {{ number_format($item->gaji_bersih ?? 0, 0, ',', '.') }}</td>
                                                 <td>
-                                                    <span class="badge badge-{{ $item->status_penggajian == 'approved' ? 'success' : 'warning' }}">
-                                                        {{ ucfirst($item->status_penggajian) ?? 'Draft' }}
+                                                    <span class="badge badge-{{ $item->status == 'paid' ? 'success' : 'warning' }}">
+                                                        {{ ucfirst($item->status) ?? 'Draft' }}
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <a href="{{ route('administrator.penggajian.show', $item->id_penggajian) }}" class="btn btn-sm btn-info">
+                                                    <a href="{{ Route::has('administrators.penggajian.show') ? route('administrators.penggajian.show', $item->id_penggajian) : '#' }}" class="btn btn-sm btn-info">
                                                         <i class="fe fe-eye"></i>
                                                     </a>
-                                                    <a href="{{ route('administrator.penggajian.edit', $item->id_penggajian) }}" class="btn btn-sm btn-warning">
+                                                    <a href="{{ Route::has('administrators.penggajian.edit') ? route('administrators.penggajian.edit', $item->id_penggajian) : '#' }}" class="btn btn-sm btn-warning">
                                                         <i class="fe fe-edit"></i>
                                                     </a>
-                                                    <form action="{{ route('administrator.penggajian.destroy', $item->id_penggajian) }}" method="POST" style="display:inline;">
+                                                    @if(Route::has('administrators.penggajian.destroy'))
+                                                    <form action="{{ route('administrators.penggajian.destroy', $item->id_penggajian) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
                                                             <i class="fe fe-trash"></i>
                                                         </button>
                                                     </form>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -74,7 +76,7 @@
                             </div>
                         @else
                             <div class="alert alert-info">
-                                Belum ada data penggajian. <a href="{{ route('administrator.penggajian.create') }}">Hitung gaji pegawai</a>
+                                Belum ada data penggajian. <a href="{{ Route::has('administrators.penggajian.create') ? route('administrators.penggajian.create') : '#' }}">Hitung gaji pegawai</a>
                             </div>
                         @endif
                     </div>
