@@ -29,6 +29,11 @@ class PtkpStatusController extends Controller
         return redirect()->route('administrators.ptkp-status.index')->with('success', 'Status PTKP berhasil ditambah');
     }
 
+    public function show(PtkpStatus $ptkpStatus)
+    {
+        return view('administrator.ptkp-status.show', compact('ptkpStatus'));
+    }
+
     public function edit(PtkpStatus $ptkpStatus)
     {
         return view('administrator.ptkp-status.edit', compact('ptkpStatus'));

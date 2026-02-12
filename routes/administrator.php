@@ -21,7 +21,7 @@ Route::middleware('auth:administrator')->name('administrators.')->prefix('admini
     Route::resource('jabatan', JabatanController::class);
     Route::resource('tunjangan', TunjanganController::class);
     Route::resource('potongan', PotonganController::class);
-    Route::resource('ptkp-status', PtkpStatusController::class);
+    Route::resource('ptkp-status', PtkpStatusController::class)->parameters(['ptkp-status' => 'ptkpStatus']);
 
     // Payroll & Pegawai
     Route::resource('pegawai', PegawaiController::class)->only('index', 'show');

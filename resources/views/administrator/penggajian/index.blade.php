@@ -1,88 +1,60 @@
-@extends('layouts.administrator.app')
+@extends('layouts.app')
 
 @section('title', 'Data Penggajian')
+@section('description', 'Kelola Data Penggajian')
 
 @section('content')
-<div class="container-fluid">
-    <div class="page-header">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="page-title">Data Penggajian</h1>
-            </div>
-            <div class="col-lg-6 text-end">
-                <a href="{{ Route::has('administrators.penggajian.create') ? route('administrators.penggajian.create') : '#' }}" class="btn btn-primary">
-                    <i class="fe fe-plus me-2"></i>Hitung Gaji
-                </a>
-            </div>
-        </div>
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h4 class="card-title">Daftar Penggajian</h4>
+      </div>
+      <div class="card-body">
+        @if($penggajian->count() > 0)
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Nama Pegawai</th>
+                  <th>Periode</th>
+                  <th>Gaji Pokok</th>
+                  <th>Tunjangan</th>
+                  <th>Potongan</th>
+                  <th>Gaji Bersih</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($penggajian as $item)
+                <tr>
+                  <td>{{ $item->pegawai->nama ?? '-' }}</td>
+                  <td>{{ $item->periode ?? '-' }}</td>
+                  <td>Rp {{ number_format($item->gaji_pokok ?? 0, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format($item->total_tunjangan ?? 0, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format($item->total_potongan ?? 0, 0, ',', '.') }}</td>
+                  <td>Rp {{ number_format($item->gaji_bersih ?? 0, 0, ',', '.') }}</td>
+                  <td>
+                    <span class="badge bg-{{ $item->status == 'draft' ? 'warning' : 'success' }}">
+                      {{ ucfirst($item->status ?? 'draft') }}
+                    </span>
+                  </td>
+                  <td>
+                    <a href="{{ route('administrators.penggajian.show', $item->id_penggajian) }}" class="btn btn-sm btn-info">
+                      <i class="bi bi-eye"></i> Lihat
+                    </a>
+                  </td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        @else
+          <p class="text-center text-muted">Belum ada data penggajian</p>
+        @endif
+      </div>
     </div>
-</div>
-
-<div class="page-wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title">Daftar Penggajian</h5>
-                    </div>
-                    <div class="card-body">
-                        @if ($penggajian->count() > 0)
-                            <div class="table-responsive">
-                                <table class="table table-hover table-md">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Pegawai</th>
-                                            <th>Periode</th>
-                                            <th>Gaji Bersih</th>
-                                            <th>Status</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($penggajian as $item)
-                                            <tr>
-                                                <td>{{ $item->id_penggajian }}</td>
-                                                <td>{{ $item->pegawai->nama_pegawai ?? '-' }}</td>
-                                                <td>{{ $item->periode ?? '-' }}</td>
-                                                <td>Rp {{ number_format($item->gaji_bersih ?? 0, 0, ',', '.') }}</td>
-                                                <td>
-                                                    <span class="badge badge-{{ $item->status == 'paid' ? 'success' : 'warning' }}">
-                                                        {{ ucfirst($item->status) ?? 'Draft' }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <a href="{{ Route::has('administrators.penggajian.show') ? route('administrators.penggajian.show', $item->id_penggajian) : '#' }}" class="btn btn-sm btn-info">
-                                                        <i class="fe fe-eye"></i>
-                                                    </a>
-                                                    <a href="{{ Route::has('administrators.penggajian.edit') ? route('administrators.penggajian.edit', $item->id_penggajian) : '#' }}" class="btn btn-sm btn-warning">
-                                                        <i class="fe fe-edit"></i>
-                                                    </a>
-                                                    @if(Route::has('administrators.penggajian.destroy'))
-                                                    <form action="{{ route('administrators.penggajian.destroy', $item->id_penggajian) }}" method="POST" style="display:inline;">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">
-                                                            <i class="fe fe-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="alert alert-info">
-                                Belum ada data penggajian. <a href="{{ Route::has('administrators.penggajian.create') ? route('administrators.penggajian.create') : '#' }}">Hitung gaji pegawai</a>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 @endsection
