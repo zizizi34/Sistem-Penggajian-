@@ -29,18 +29,21 @@ class PtkpStatusController extends Controller
         return redirect()->route('administrators.ptkp-status.index')->with('success', 'Status PTKP berhasil ditambah');
     }
 
-    public function show(PtkpStatus $ptkpStatus)
+    public function show($id)
     {
+        $ptkpStatus = PtkpStatus::findOrFail($id);
         return view('administrator.ptkp-status.show', compact('ptkpStatus'));
     }
 
-    public function edit(PtkpStatus $ptkpStatus)
+    public function edit($id)
     {
+        $ptkpStatus = PtkpStatus::findOrFail($id);
         return view('administrator.ptkp-status.edit', compact('ptkpStatus'));
     }
 
-    public function update(Request $request, PtkpStatus $ptkpStatus)
+    public function update(Request $request, $id)
     {
+        $ptkpStatus = PtkpStatus::findOrFail($id);
         $ptkpStatus->update($request->validate([
             'kode_ptkp_status' => 'nullable|string',
             'deskripsi' => 'nullable|string',
@@ -49,9 +52,17 @@ class PtkpStatusController extends Controller
         return redirect()->route('administrators.ptkp-status.index')->with('success', 'Status PTKP berhasil diubah');
     }
 
-    public function destroy(PtkpStatus $ptkpStatus)
+    public function destroy($id)
     {
-        $ptkpStatus->delete();
-        return redirect()->route('administrators.ptkp-status.index')->with('success', 'Status PTKP berhasil dihapus');
+        try {
+            $ptkpStatus = PtkpStatus::findOrFail($id);
+            $ptkpStatus->delete();
+            return redirect()->route('administrators.ptkp-status.index')->with('success', 'Status PTKP berhasil dihapus');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('administrators.ptkp-status.index')->with('error', 'Status PTKP tidak ditemukan');
+        } catch (\Exception $e) {
+            \Log::error('Delete ptkp status error: ' . $e->getMessage());
+            return redirect()->route('administrators.ptkp-status.index')->with('error', 'Gagal menghapus status PTKP');
+        }
     }
 }

@@ -6,6 +6,7 @@
 @section('content')
 <div class="row">
   <div class="col-12">
+    @include('utilities.alert')
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="card-title">Daftar Potongan</h4>
@@ -33,7 +34,10 @@
                     <a href="{{ route('administrators.potongan.edit', $item->id_potongan) }}" class="btn btn-sm btn-warning">
                       <i class="bi bi-pencil"></i>
                     </a>
-                    <button type="button" class="btn btn-sm btn-danger btn-delete-potongan" data-action="{{ route('administrators.potongan.destroy', $item->id_potongan) }}" data-name="{{ $item->nama_potongan }}">
+                    <button type="button" class="btn btn-sm btn-danger" 
+                      data-delete-action="{{ route('administrators.potongan.destroy', $item->id_potongan) }}"
+                      data-delete-item="{{ $item->nama_potongan }}"
+                      data-delete-category="potongan">
                       <i class="bi bi-trash"></i>
                     </button>
                   </td>
@@ -47,54 +51,9 @@
         @endif
       </div>
     </div>
-</div>
-
-<!-- Delete confirmation modal -->
-<div class="modal fade" id="confirmDeleteModalPotongan" tabindex="-1" aria-labelledby="confirmDeleteLabelPotongan" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmDeleteLabelPotongan">Konfirmasi Hapus</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>Yakin ingin menghapus potongan <strong id="deleteItemNamePotongan"></strong> ?</p>
-      </div>
-      <div class="modal-footer">
-        <form id="deleteFormPotongan" method="POST" action="">
-          @csrf
-          @method('DELETE')
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-danger">Hapus</button>
-        </form>
-      </div>
-    </div>
   </div>
 </div>
 
-@push('script')
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.btn-delete-potongan').forEach(function(btn) {
-      btn.addEventListener('click', function () {
-        var action = this.getAttribute('data-action');
-        var name = this.getAttribute('data-name') || '';
-        var deleteForm = document.getElementById('deleteFormPotongan');
-        var deleteItemName = document.getElementById('deleteItemNamePotongan');
-        deleteForm.action = action;
-        deleteItemName.textContent = name;
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-          var modalEl = document.getElementById('confirmDeleteModalPotongan');
-          var modal = new bootstrap.Modal(modalEl);
-          modal.show();
-        } else {
-          if (confirm('Yakin ingin menghapus potongan "' + name + '" ?')) {
-            deleteForm.submit();
-          }
-        }
-      });
-    });
-  });
-</script>
-@endpush
+@include('components.delete-confirmation-modal')
+@endsection
 @endsection

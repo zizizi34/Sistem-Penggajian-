@@ -43,26 +43,33 @@
           @enderror
         </div>
 
-        <!-- Password Input -->
+        <!-- Password Input with Eye Icon -->
         <div class="form-group">
           <label for="password">Password</label>
-          <input 
-            type="password" 
-            id="password"
-            name="password" 
-            class="form-control @error('password', 'authentication') is-invalid @enderror" 
-            placeholder="Masukkan password Anda"
-            required 
-          />
+          <div class="password-input-wrapper" style="position: relative;">
+            <input 
+              type="password" 
+              id="password"
+              name="password" 
+              class="form-control @error('password', 'authentication') is-invalid @enderror" 
+              placeholder="Masukkan password Anda"
+              required 
+            />
+            <button 
+              type="button" 
+              class="btn-toggle-password" 
+              onclick="togglePasswordVisibility()"
+              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6c757d;"
+            >
+              <i class="bi bi-eye" id="password-icon"></i>
+            </button>
+          </div>
           @error('password', 'authentication')
-          <div class="invalid-feedback">
+          <div class="invalid-feedback" style="display: block;">
             {{ $message }}
           </div>
           @enderror
         </div>
-
-        <!-- Hidden Type Field -->
-        <input type="hidden" name="type" value="administrator">
 
         <!-- Submit Button -->
         <button type="submit" class="login-btn">
@@ -90,4 +97,23 @@
     </div>
   </div>
 </div>
+
+@push('script')
+<script>
+  function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const passwordIcon = document.getElementById('password-icon');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      passwordIcon.classList.remove('bi-eye');
+      passwordIcon.classList.add('bi-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      passwordIcon.classList.remove('bi-eye-slash');
+      passwordIcon.classList.add('bi-eye');
+    }
+  }
+</script>
+@endpush
 @endsection

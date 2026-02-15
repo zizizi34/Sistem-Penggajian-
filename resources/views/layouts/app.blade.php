@@ -16,6 +16,47 @@
 
   <link rel="stylesheet" href="{{ asset('css/shared/iconly.css') }}" />
   @vite([])
+
+  <style>
+    /* Auto-dismiss alert animation */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert.auto-dismiss {
+      animation: slideDown 0.3s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .alert.auto-dismiss::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: currentColor;
+      opacity: 0.3;
+      animation: shrink 5s linear forwards;
+    }
+
+    @keyframes shrink {
+      from {
+        width: 100%;
+      }
+      to {
+        width: 0;
+      }
+    }
+  </style>
 </head>
 
 <body>

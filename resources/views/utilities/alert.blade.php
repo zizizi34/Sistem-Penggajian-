@@ -1,40 +1,40 @@
 @if(session('success'))
-<div class="alert alert-success alert-dismissible show fade">
+<div class="alert alert-success alert-dismissible show fade auto-dismiss" role="alert">
   <i class="bi bi-check2-circle"></i> {{ session('success') }}
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
 @if(session('warning'))
-<div class="alert alert-warning alert-dismissible show fade">
+<div class="alert alert-warning alert-dismissible show fade auto-dismiss" role="alert">
   <i class="bi bi-shield-fill-exclamation"></i> {{ session('warning') }}
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
 @if(session('error'))
-<div class="alert alert-danger alert-dismissible show fade">
+<div class="alert alert-danger alert-dismissible show fade" role="alert">
   <i class="bi bi-shield-fill-exclamation"></i> {{ session('error') }}
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
 @if($errors->authentication->any())
-<div class="alert alert-danger alert-dismissible show fade">
+<div class="alert alert-danger alert-dismissible show fade" role="alert">
   <i class="bi bi-shield-fill-exclamation"></i> {{ $errors->authentication->first() }}
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
 @if(session('authentication'))
-<div class="alert alert-danger alert-dismissible show fade">
+<div class="alert alert-danger alert-dismissible show fade" role="alert">
   <i class="bi bi-shield-fill-exclamation"></i> {{ session('authentication') }}
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
 
 @if($errors->store->any())
-<div class="alert alert-danger alert-dismissible show fade">
+<div class="alert alert-danger alert-dismissible show fade" role="alert">
   <i class="bi bi-exclamation-circle"></i>
   <span class="fw-bold">Data gagal ditambahkan!</span>
   <div class="col-md-6">
@@ -49,7 +49,7 @@
 @endif
 
 @if($errors->update->any())
-<div class="alert alert-danger alert-dismissible show fade">
+<div class="alert alert-danger alert-dismissible show fade" role="alert">
   <i class="bi bi-exclamation-circle"></i>
   <span class="fw-bold">Data gagal diubah!</span>
   <div class="col-md-6">
@@ -62,3 +62,18 @@
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
+
+@push('script')
+<script>
+  // Auto-dismiss alerts after 5 seconds
+  document.addEventListener('DOMContentLoaded', function() {
+    const autoDismissAlerts = document.querySelectorAll('.alert.auto-dismiss');
+    autoDismissAlerts.forEach(function(alert) {
+      setTimeout(function() {
+        const bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+      }, 5000); // 5 seconds
+    });
+  });
+</script>
+@endpush

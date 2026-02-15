@@ -28,13 +28,21 @@ class PotonganController extends Controller
         return redirect()->route('administrators.potongan.index')->with('success', 'Potongan berhasil ditambah');
     }
 
-    public function edit(Potongan $potongan)
+    public function show($id)
     {
+        $potongan = Potongan::findOrFail($id);
+        return view('administrator.potongan.show', compact('potongan'));
+    }
+
+    public function edit($id)
+    {
+        $potongan = Potongan::findOrFail($id);
         return view('administrator.potongan.edit', compact('potongan'));
     }
 
-    public function update(Request $request, Potongan $potongan)
+    public function update(Request $request, $id)
     {
+        $potongan = Potongan::findOrFail($id);
         $potongan->update($request->validate([
             'nama_potongan' => 'required|string',
             'nominal' => 'required|numeric'
@@ -42,9 +50,17 @@ class PotonganController extends Controller
         return redirect()->route('administrators.potongan.index')->with('success', 'Potongan berhasil diubah');
     }
 
-    public function destroy(Potongan $potongan)
+    public function destroy($id)
     {
-        $potongan->delete();
-        return redirect()->route('administrators.potongan.index')->with('success', 'Potongan berhasil dihapus');
+        try {
+            $potongan = Potongan::findOrFail($id);
+            $potongan->delete();
+            return redirect()->route('administrators.potongan.index')->with('success', 'Potongan berhasil dihapus');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('administrators.potongan.index')->with('error', 'Potongan tidak ditemukan');
+        } catch (\Exception $e) {
+            \Log::error('Delete potongan error: ' . $e->getMessage());
+            return redirect()->route('administrators.potongan.index')->with('error', 'Gagal menghapus potongan');
+        }
     }
 }
