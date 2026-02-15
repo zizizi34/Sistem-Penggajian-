@@ -56,6 +56,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the pegawai that the user belongs to
+     */
+    public function pegawai()
+    {
+        return $this->belongsTo(Pegawai::class, 'id_pegawai', 'id_pegawai');
+    }
+
+    /**
      * Get the password attribute for authentication
      */
     public function getAuthPassword()

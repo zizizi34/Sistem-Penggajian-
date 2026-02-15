@@ -64,6 +64,67 @@
           </a>
         </div>
       </div>
+      <div class="col-6 col-lg-4 col-md-6">
+        <div class="card">
+            <div class="card-body px-4 py-4-5">
+              <div class="row">
+                <div class="col-md-4 col-lg-12 col-xl-12 col-xxl-5 d-flex justify-content-start">
+                  <div class="stats-icon purple mb-2">
+                    <i class="iconly-boldTime-Circle"></i>
+                  </div>
+                </div>
+                <div class="col-md-8 col-lg-12 col-xl-12 col-xxl-7">
+                  <h6 class="text-muted font-semibold">Total Hadir</h6>
+                  <h6 class="font-extrabold mb-0">{{ $totalHadir ?? 0 }}</h6>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h4>Absensi Hari Ini</h4>
+          </div>
+          <div class="card-body">
+            @if($recentAbsensi->count() > 0)
+              <div class="table-responsive">
+                <table class="table table-hover table-lg">
+                  <thead>
+                    <tr>
+                      <th>Nama Pegawai</th>
+                      <th>Jam Masuk</th>
+                      <th>Jam Pulang</th>
+                      <th>Foto</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach($recentAbsensi as $item)
+                    <tr>
+                      <td>{{ $item->pegawai?->nama_pegawai ?? '-' }}</td>
+                      <td>{{ $item->jam_masuk }}</td>
+                      <td>{{ $item->jam_pulang ?? '-' }}</td>
+                      <td>
+                          @if($item->foto_masuk)
+                            <a href="{{ Storage::url($item->foto_masuk) }}" target="_blank">Lihat</a>
+                          @else
+                            -
+                          @endif
+                      </td>
+                    </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
+            @else
+              <p class="text-center text-muted">Belum ada data absensi hari ini</p>
+            @endif
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="row">
@@ -89,7 +150,7 @@
                   <tbody>
                     @foreach($recentPenggajian as $item)
                     <tr>
-                      <td>{{ $item->pegawai->nama ?? '-' }}</td>
+                      <td>{{ $item->pegawai?->nama_pegawai ?? '-' }}</td>
                       <td>{{ $item->periode ?? '-' }}</td>
                       <td>Rp {{ number_format($item->gaji_pokok ?? 0, 0, ',', '.') }}</td>
                       <td>Rp {{ number_format($item->total_tunjangan ?? 0, 0, ',', '.') }}</td>

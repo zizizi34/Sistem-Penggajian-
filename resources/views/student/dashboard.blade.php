@@ -93,9 +93,31 @@
       <div class="card-body py-4 px-4">
         <div class="d-flex align-items-center">
           <div class=" ms-3 name">
-            <h5 class="font-bold">{{ auth('student')->user()->name }}</h5>
-            <h6 class="text-muted mb-0">{{ auth('student')->user()->email }}</h6>
+            <h5 class="font-bold">{{ auth('student')->user()->pegawai?->nama_pegawai ?? 'User' }}</h5>
+            <h6 class="text-muted mb-0">{{ auth('student')->user()->email_user }}</h6>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h4>Status Absensi</h4>
+      </div>
+      <div class="card-body">
+        @if(isset($todayAttendance))
+        <div class="d-flex justify-content-between mb-3">
+          <span>Masuk</span>
+          <strong>{{ $todayAttendance->jam_masuk }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <span>Pulang</span>
+          <strong>{{ $todayAttendance->jam_pulang ?? '-' }}</strong>
+        </div>
+        @else
+        <div class="text-center text-muted mb-3">Belum absen hari ini</div>
+        @endif
+        <div class="d-grid">
+            <a href="{{ route('students.attendance.index') }}" class="btn btn-primary btn-sm">Absen Sekarang</a>
         </div>
       </div>
     </div>

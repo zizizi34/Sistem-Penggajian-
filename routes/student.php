@@ -10,7 +10,7 @@ Route::middleware('auth:student')->name('students.')->prefix('student')->group(f
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::resource('payroll', PayrollController::class)->only('index');
-    Route::resource('attendance', AttendanceController::class)->only('index');
+    Route::resource('attendance', AttendanceController::class)->only('index', 'store');
 
     Route::controller(ProfileSettingController::class)->group(function () {
         Route::get('/profile/settings', 'index')->name('profile-settings.index');
