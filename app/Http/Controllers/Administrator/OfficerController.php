@@ -14,8 +14,7 @@ class OfficerController extends Controller
      */
     public function index()
     {
-        $officers = Officer::select('id', 'name', 'email', 'phone_number')
-            ->whereNot('id', auth()->id())->get();
+        $officers = Officer::select('id', 'name', 'email', 'phone_number')->get();
 
         return view('administrator.officer.index', compact('officers'));
     }

@@ -14,8 +14,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $administrators = Administrator::select('id', 'name', 'email', 'phone_number')
-            ->whereNot('id', auth()->id())->get();
+        $administrators = Administrator::select('id', 'name', 'email', 'phone_number')->get();
 
         return view('administrator.user.index', compact('administrators'));
     }

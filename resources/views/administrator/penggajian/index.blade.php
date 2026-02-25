@@ -7,8 +7,15 @@
 <div class="row">
   <div class="col-12">
     <div class="card">
-      <div class="card-header">
+      <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="card-title">Daftar Penggajian</h4>
+        <form action="{{ route('administrators.penggajian.calculate') }}" method="POST" class="d-flex gap-2">
+            @csrf
+            <input type="month" name="periode" class="form-control form-control-sm" value="{{ now()->format('Y-m') }}">
+            <button type="submit" class="btn btn-primary btn-sm text-nowrap">
+                <i class="bi bi-calculator"></i> Hitung Gaji
+            </button>
+        </form>
       </div>
       <div class="card-body">
         @if($penggajian->count() > 0)
@@ -29,7 +36,7 @@
               <tbody>
                 @foreach($penggajian as $item)
                 <tr>
-                  <td>{{ $item->pegawai->nama ?? '-' }}</td>
+                  <td>{{ $item->pegawai->nama_pegawai ?? '-' }}</td>
                   <td>{{ $item->periode ?? '-' }}</td>
                   <td>Rp {{ number_format($item->gaji_pokok ?? 0, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format($item->total_tunjangan ?? 0, 0, ',', '.') }}</td>

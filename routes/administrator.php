@@ -11,6 +11,7 @@ use App\Http\Controllers\Administrator\PenggajianController;
 use App\Http\Controllers\Administrator\OfficerController;
 use App\Http\Controllers\Administrator\ProfileSettingController;
 use App\Http\Controllers\Administrator\UserController;
+use App\Http\Controllers\Administrator\JadwalKerjaController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:administrator')->name('administrators.')->prefix('administrator')->group(function () {
@@ -45,6 +46,9 @@ Route::middleware('auth:administrator')->name('administrators.')->prefix('admini
 
     // Data Master - Departemen
     Route::resource('departemen', DepartemenController::class);
+
+    // Data Master - Jadwal Kerja
+    Route::resource('jadwal-kerja', JadwalKerjaController::class)->only(['index', 'store', 'destroy']);
     
     // Data Master - Jabatan
     Route::get('jabatan', [JabatanController::class, 'index'])->name('jabatan.index');
@@ -58,6 +62,7 @@ Route::middleware('auth:administrator')->name('administrators.')->prefix('admini
     // Payroll & Pegawai
     Route::resource('pegawai', PegawaiController::class)->only('index', 'show');
     Route::resource('penggajian', PenggajianController::class)->only('index', 'show');
+    Route::post('penggajian/calculate', [PenggajianController::class, 'calculate'])->name('penggajian.calculate');
 
     Route::resource('users', UserController::class)->except(
         'create',

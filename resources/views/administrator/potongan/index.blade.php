@@ -56,4 +56,3 @@
 
 @include('components.delete-confirmation-modal')
 @endsection
-@endsection

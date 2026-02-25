@@ -18,6 +18,13 @@
       </a>
     </li>
 
+    <li class="sidebar-item {{ request()->routeIs('administrators.jadwal-kerja.*') ? 'active' : '' }}">
+      <a href="{{ route('administrators.jadwal-kerja.index') }}" class="sidebar-link">
+        <i class="bi bi-clock-fill"></i>
+        <span>Jadwal Kerja</span>
+      </a>
+    </li>
+
     <li class="sidebar-item {{ request()->routeIs('administrators.jabatan.*') ? 'active' : '' }}">
       <a href="{{ Route::has('administrators.jabatan.index') ? route('administrators.jabatan.index') : '#' }}" class="sidebar-link">
         <i class="bi bi-briefcase-fill"></i>
@@ -83,21 +90,6 @@
         <i class="bi bi-person-fill-gear"></i>
         <span>Pengaturan Profil</span>
       </a>
-    </li>
-
-    <li class="sidebar-title"></li>
-
-    <li class="sidebar-item">
-      <form action="{{ route('logout') }}" method="POST">
-        @csrf
-        <a href="{{ route('logout') }}" class="sidebar-link" id="logout">
-          <i class="bi bi-box-arrow-right"></i>
-          <span>Keluar</span>
-        </a>
-      </form>
-    </li>
-  </ul>
-</div>
     </li>
 
     <li class="sidebar-title"></li>

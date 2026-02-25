@@ -18,4 +18,22 @@ class PenggajianController extends Controller
     {
         return view('administrator.penggajian.show', compact('penggajian'));
     }
+
+    public function calculate(Request $request)
+    {
+        $periode = $request->periode ?: now()->format('Y-m');
+        $salaryService = app(\App\Services\SalaryCalculationService::class);
+        $pegawais = \App\Models\Pegawai::where('status_pegawai', 'aktif')->get();
+
+        $count = 0;
+        foreach ($pegawais as $pegawai) {
+            $result = $salaryService->calculateMonthlySalary($pegawai, $periode);
+            if ($result['status'] === 'success') {
+                $salaryService->saveSalaryCalculation($pegawai, $periode, $result);
+                $count++;
+            }
+        }
+
+        return redirect()->back()->with('success', $count . ' Data gaji berhasil dihitung untuk periode ' . $periode);
+    }
 }

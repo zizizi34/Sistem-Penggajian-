@@ -48,15 +48,21 @@ class SalaryCalculationService
             // 2. Hitung Tunjangan
             $totalAllowance = $this->calculateAllowances($pegawai);
 
-            // 3. Hitung Lembur
+            // 3. Hitung Lembur (Manual + Otomatis dari Absensi)
             $overtimeData = $this->calculateOvertime($pegawai, $startDate, $endDate);
+            
+            // Tambahkan lembur otomatis dari absensi ke total nominal lembur
+            $hourlyRate = $pegawai->gaji_pokok / 173;
+            $autoOvertimeNominal = $absenceData['auto_overtime_hours'] * $hourlyRate * 2; // Asumsi rate 2x untuk stay late
+            $totalOvertimeNominal = $overtimeData['nominal'] + $autoOvertimeNominal;
+            $totalOvertimeHours = $overtimeData['total_jam'] + $absenceData['auto_overtime_hours'];
 
             // 4. Hitung Potongan (selain PPh)
             $totalDeduction = $this->calculateDeductions($pegawai);
 
             // 5. Hitung Gaji Bruto (sebelum pajak)
             $baseSalary = $pegawai->gaji_pokok;
-            $grossSalary = $baseSalary + $totalAllowance + $overtimeData['nominal'] - $absenceData['deduction'];
+            $grossSalary = $baseSalary + $totalAllowance + $totalOvertimeNominal - $absenceData['deduction'];
 
             // 6. Hitung Pajak PPh 21
             $taxData = $this->calculateIncomeTax($pegawai, $grossSalary);
@@ -75,7 +81,12 @@ class SalaryCalculationService
                     'total' => $totalAllowance,
                     'detail' => $this->getDetailAllowances($pegawai)
                 ],
-                'lembur' => $overtimeData,
+                'lembur' => [
+                    'manual' => $overtimeData,
+                    'otomatis_absensi_jam' => $absenceData['auto_overtime_hours'],
+                    'total_jam' => $totalOvertimeHours,
+                    'total_nominal' => $totalOvertimeNominal
+                ],
                 'potongan' => [
                     'non_pajak' => $totalDeduction,
                     'detail' => $this->getDetailDeductions($pegawai)
@@ -90,6 +101,7 @@ class SalaryCalculationService
                     'hari_alpha' => $absenceData['alpha'],
                     'hari_izin' => $absenceData['leave'],
                     'hari_sakit' => $absenceData['sick'],
+                    'total_terlambat' => $absenceData['late'],
                 ]
             ];
         } catch (\Exception $e) {
@@ -114,7 +126,15 @@ class SalaryCalculationService
      */
     private function calculateAbsence(Pegawai $pegawai, $startDate, $endDate)
     {
-        // Hitung total hari kerja (Senin-Jumat saja)
+        // Ambil jadwal kerja departemen
+        $jadwal = $pegawai->departemen->jadwalKerja ?? null;
+        
+        // Default settings jika jadwal tidak diatur
+        $standardIn = $jadwal ? $jadwal->jam_masuk : '08:00:00';
+        $standardOut = $jadwal ? $jadwal->jam_pulang : '17:00:00';
+        $tolerance = $jadwal ? $jadwal->toleransi_terlambat : 0;
+
+        // Hitung total hari kerja berdasarkan jadwal (Senin-Jumat default)
         $workingDays = $this->countWorkingDays($startDate, $endDate);
 
         // Ambil data absensi dari database
@@ -127,18 +147,37 @@ class SalaryCalculationService
         $leave = 0;
         $sick = 0;
         $lateCount = 0;
-        $standardTime = '08:00:00'; // Jam standar masuk
         $deduction = 0;
+        $autoOvertimeMinutes = 0;
 
         foreach ($absences as $absence) {
             if ($absence->status === 'hadir') {
-                // Cek keterlambatan (jika jam masuk > 08:00)
-                if ($absence->jam_masuk && strtotime($absence->jam_masuk) > strtotime($standardTime)) {
-                    $lateCount++;
-                    // Potongan untuk keterlambatan: Rp. 50.000 per kali
-                    $deduction += 50000;
-                } else {
-                    $present++;
+                $present++;
+                
+                // 1. Cek keterlambatan (melebihi jam masuk + toleransi)
+                if ($absence->jam_masuk) {
+                    $entryTime = strtotime($absence->jam_masuk);
+                    $limitTime = strtotime($standardIn) + ($tolerance * 60);
+                    
+                    if ($entryTime > $limitTime) {
+                        $lateCount++;
+                        // Potongan untuk keterlambatan: Rp. 25.000 per kali (contoh)
+                        $deduction += 25000;
+                    }
+                }
+
+                // 2. Hitung Lembur Otomatis (jika pulang lebih lama dari jadwal)
+                if ($absence->jam_pulang) {
+                    $exitTime = strtotime($absence->jam_pulang);
+                    $scheduleExit = strtotime($standardOut);
+                    
+                    if ($exitTime > $scheduleExit) {
+                        $diffMinutes = ($exitTime - $scheduleExit) / 60;
+                        // Hanya hitung jika minimal 30 menit lembur
+                        if ($diffMinutes >= 30) {
+                            $autoOvertimeMinutes += $diffMinutes;
+                        }
+                    }
                 }
             } elseif ($absence->status === 'izin') {
                 $leave++;
@@ -146,8 +185,9 @@ class SalaryCalculationService
                 $sick++;
             } elseif ($absence->status === 'alpha') {
                 $alpha++;
-                // Potongan untuk alpha: Rp. 100.000 per hari
-                $deduction += 100000;
+                // Potongan untuk alpha: Potong gaji harian
+                $dailySalary = $pegawai->gaji_pokok / 22; // Asumsi 22 hari kerja
+                $deduction += $dailySalary;
             }
         }
 
@@ -158,7 +198,8 @@ class SalaryCalculationService
             'leave' => $leave,
             'sick' => $sick,
             'late' => $lateCount,
-            'deduction' => $deduction
+            'auto_overtime_hours' => round($autoOvertimeMinutes / 60, 2),
+            'deduction' => round($deduction, 2)
         ];
     }
 

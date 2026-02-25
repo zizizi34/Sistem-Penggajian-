@@ -9,7 +9,7 @@
     <div class="login-form-wrapper">
       <!-- Logo -->
       <div class="login-logo">
-        <img src="{{ asset('images/logo/laguna.png') }}" alt="Laguna Logo">
+        <img src="{{ asset('images/logo/laguna.png') }}" alt="Laguna Logo" class="logo-img">
       </div>
 
       <!-- Title -->
