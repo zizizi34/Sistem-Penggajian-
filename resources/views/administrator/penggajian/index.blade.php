@@ -43,8 +43,8 @@
                   <td>Rp {{ number_format($item->total_potongan ?? 0, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format($item->gaji_bersih ?? 0, 0, ',', '.') }}</td>
                   <td>
-                    <span class="badge bg-{{ $item->status == 'draft' ? 'warning' : 'success' }}">
-                      {{ ucfirst($item->status ?? 'draft') }}
+                    <span class="badge bg-{{ $item->status == 'pending' ? 'warning' : 'success' }}">
+                      {{ ucfirst($item->status ?? 'pending') }}
                     </span>
                   </td>
                   <td>

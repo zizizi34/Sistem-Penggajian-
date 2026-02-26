@@ -63,8 +63,8 @@
           <div class="col-md-6">
             <label class="form-label">Status</label>
             <p>
-              <span class="badge bg-{{ $penggajian->status == 'draft' ? 'warning' : 'success' }}">
-                {{ ucfirst($penggajian->status ?? 'draft') }}
+              <span class="badge bg-{{ $penggajian->status == 'pending' ? 'warning' : 'success' }}">
+                {{ ucfirst($penggajian->status ?? 'pending') }}
               </span>
             </p>
           </div>

@@ -203,7 +203,7 @@ class PenggajianController extends Controller
                 'lembur' => $validated['lembur'],
                 'pajak_pph21' => $validated['pajak_pph21'],
                 'gaji_bersih' => $validated['gaji_bersih'],
-                'status' => 'draft'
+                'status' => 'pending'
             ]);
 
             // Log action
@@ -234,7 +234,7 @@ class PenggajianController extends Controller
      * Update (Edit) perhitungan gaji
      * 
      * Permission: gaji.edit (Admin HRD only)
-     * Constraint: Hanya draft status yang bisa diedit
+     * Constraint: Hanya pending status yang bisa diedit
      */
     public function update(Request $request, $penggajianId)
     {
@@ -249,11 +249,11 @@ class PenggajianController extends Controller
             return $this->notFoundResponse('Penggajian tidak ditemukan');
         }
 
-        // Hanya draft yang bisa diedit
-        if ($penggajian->status !== 'draft') {
+        // Hanya pending yang bisa diedit
+        if ($penggajian->status !== 'pending') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Hanya perhitungan gaji dengan status DRAFT yang bisa diedit'
+                'message' => 'Hanya perhitungan gaji dengan status PENDING yang bisa diedit'
             ], 422);
         }
 

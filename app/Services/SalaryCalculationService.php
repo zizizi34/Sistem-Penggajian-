@@ -471,10 +471,10 @@ class SalaryCalculationService
                 'gaji_pokok' => $calculationResult['gaji_pokok'],
                 'total_tunjangan' => $calculationResult['tunjangan']['total'],
                 'total_potongan' => $calculationResult['potongan']['non_pajak'],
-                'lembur' => $calculationResult['lembur']['nominal'],
+                'lembur' => $calculationResult['lembur']['total_nominal'],
                 'pajak_pph21' => $calculationResult['pajak_pph21'],
                 'gaji_bersih' => $calculationResult['gaji_bersih'],
-                'status' => 'draft'
+                'status' => 'pending'
             ]);
 
             return true;
