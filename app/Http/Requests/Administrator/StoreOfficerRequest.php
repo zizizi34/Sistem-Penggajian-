@@ -24,6 +24,7 @@ class StoreOfficerRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'id_departemen' => 'nullable|exists:departemen,id_departemen',
             'name' => 'required|string|min:3|max:255',
             'email' => 'required|email|unique:officers,email|min:3|max:255',
             'password' => 'required|confirmed|min:3|max:255',

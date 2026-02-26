@@ -4,6 +4,7 @@ use App\Http\Controllers\Officer\DashboardController;
 use App\Http\Controllers\Officer\DepartemenController;
 use App\Http\Controllers\Officer\JabatanController;
 use App\Http\Controllers\Officer\TunjanganController;
+use App\Http\Controllers\Officer\JadwalKerjaController;
 use App\Http\Controllers\Officer\PotonganController;
 use App\Http\Controllers\Officer\PegawaiController;
 use App\Http\Controllers\Officer\PenggajianController;
@@ -18,6 +19,7 @@ Route::middleware('auth:officer')->name('officers.')->prefix('officer')->group(f
     Route::resource('jabatan', JabatanController::class)->only('index');
     Route::resource('tunjangan', TunjanganController::class)->only('index');
     Route::resource('potongan', PotonganController::class)->only('index');
+    Route::resource('jadwal-kerja', JadwalKerjaController::class)->except(['create', 'show', 'edit', 'update']);
 
     // Payroll & Pegawai
     Route::resource('pegawai', PegawaiController::class)->only('index');

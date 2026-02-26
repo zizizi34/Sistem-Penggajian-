@@ -12,5 +12,10 @@ class Officer extends Authenticatable
 
     protected $guard = 'officer';
 
-    protected $fillable = ['name', 'email', 'password', 'phone_number'];
+    protected $fillable = ['id_departemen', 'name', 'email', 'password', 'phone_number'];
+
+    public function departemen()
+    {
+        return $this->belongsTo(Departemen::class, 'id_departemen', 'id_departemen');
+    }
 }

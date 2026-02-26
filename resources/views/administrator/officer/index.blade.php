@@ -26,6 +26,7 @@
                 <th scope="col">#</th>
                 <th scope="col">Nama</th>
                 <th scope="col">Email</th>
+                <th scope="col">Departemen</th>
                 <th scope="col">Nomor Handphone</th>
                 <th scope="col">Aksi</th>
               </tr>
@@ -36,6 +37,7 @@
                 <th scope="row">{{ $loop->iteration }}</th>
                 <td>{{ $officer->name }}</td>
                 <td>{{ $officer->email }}</td>
+                <td>{{ $officer->departemen ? $officer->departemen->nama_departemen : '-' }}</td>
                 <td>{{ $officer->phone_number }}</td>
                 <td>
                   <div class="btn-group gap-1">

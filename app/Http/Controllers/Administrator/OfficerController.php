@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Administrator;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Administrator\StoreOfficerRequest;
 use App\Models\Officer;
+use App\Models\Departemen;
 use Illuminate\Http\Request;
 
 class OfficerController extends Controller
@@ -14,9 +15,10 @@ class OfficerController extends Controller
      */
     public function index()
     {
-        $officers = Officer::select('id', 'name', 'email', 'phone_number')->get();
+        $officers = Officer::with('departemen')->get();
+        $departemens = Departemen::all();
 
-        return view('administrator.officer.index', compact('officers'));
+        return view('administrator.officer.index', compact('officers', 'departemens'));
     }
 
     /**
@@ -27,6 +29,7 @@ class OfficerController extends Controller
         $validated = $request->validated();
 
         Officer::create([
+            'id_departemen' => $request->id_departemen,
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
@@ -42,6 +45,7 @@ class OfficerController extends Controller
     public function update(Request $request, Officer $officer)
     {
         $officer->update([
+            'id_departemen' => $request->id_departemen,
             'name' => $request->name,
             'email' => $request->email,
             'password' => !is_null($request->password) ? bcrypt($request->password) : $officer->password,

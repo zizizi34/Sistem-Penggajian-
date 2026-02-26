@@ -10,7 +10,14 @@ class PegawaiController extends Controller
 {
     public function index()
     {
-        $pegawai = Pegawai::with('departemen', 'jabatan')->get();
+        $officer = auth('officer')->user();
+        $query = Pegawai::with('departemen', 'jabatan');
+        
+        if ($officer->id_departemen) {
+            $query->where('id_departemen', $officer->id_departemen);
+        }
+        
+        $pegawai = $query->get();
         return view('officer.pegawai.index', compact('pegawai'));
     }
 }

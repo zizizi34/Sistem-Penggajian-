@@ -19,6 +19,19 @@
           </div>
           <div class="row">
             <div class="col-12">
+              <div class="mb-3">
+                <label for="id_departemen_edit" class="form-label">Departemen (Opsional)</label>
+                <select name="id_departemen" id="id_departemen_edit" class="form-select">
+                  <option value="">Pilih Departemen..</option>
+                  @foreach($departemens as $dept)
+                  <option value="{{ $dept->id_departemen }}">{{ $dept->nama_departemen }}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
               <label for="email" class="form-label">Email</label>
               <div class="input-group mb-3">
                 <span class="d-block input-group-text"><i class="bi bi-envelope-at-fill"></i></span>

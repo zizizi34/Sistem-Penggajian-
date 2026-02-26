@@ -18,6 +18,13 @@
       </a>
     </li>
 
+    <li class="sidebar-item {{ request()->routeIs('officers.jadwal-kerja.*') ? 'active' : '' }}">
+      <a href="{{ route('officers.jadwal-kerja.index') }}" class="sidebar-link">
+        <i class="bi bi-clock-fill"></i>
+        <span>Jadwal Kerja</span>
+      </a>
+    </li>
+
     <li class="sidebar-item {{ request()->routeIs('officers.jabatan.*') ? 'active' : '' }}">
       <a href="{{ route('officers.jabatan.index') }}" class="sidebar-link">
         <i class="bi bi-briefcase-fill"></i>

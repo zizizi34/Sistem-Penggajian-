@@ -125,6 +125,77 @@
           </div>
         </div>
       </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12 col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h4>Pegawai Terlambat (Hari Ini)</h4>
+          </div>
+          <div class="card-body">
+            @if(count($terlambatList) > 0)
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Nama Pegawai</th>
+                      <th>Jam Masuk</th>
+                      <th>Keterlambatan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach($terlambatList as $ab)
+                    <tr>
+                      <td>{{ $ab->pegawai?->nama_pegawai ?? '-' }}</td>
+                      <td>{{ $ab->jam_masuk }}</td>
+                      <td><span class="badge bg-danger">{{ $ab->terlambat_menit }} Menit</span></td>
+                    </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
+            @else
+              <p class="text-center text-muted">Tidak ada pegawai yang terlambat hari ini</p>
+            @endif
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-12 col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h4>Pegawai Lembur (Hari Ini)</h4>
+          </div>
+          <div class="card-body">
+            @if(count($lemburList) > 0)
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Nama Pegawai</th>
+                      <th>Durasi (Jam)</th>
+                      <th>Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach($lemburList as $lembur)
+                    <tr>
+                      <td>{{ $lembur->nama_pegawai ?? '-' }}</td>
+                      <td>{{ $lembur->durasi }}</td>
+                      <td>{{ $lembur->keterangan ?? '-' }}</td>
+                    </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
+            @else
+              <p class="text-center text-muted">Tidak ada pegawai lembur hari ini</p>
+            @endif
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="row">

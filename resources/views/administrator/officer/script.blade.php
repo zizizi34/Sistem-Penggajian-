@@ -28,6 +28,7 @@
           $('#editOfficerModal #name').val(res.data.name);
           $('#editOfficerModal #email').val(res.data.email);
           $('#editOfficerModal #phone_number').val(res.data.phone_number);
+          $('#editOfficerModal #id_departemen_edit').val(res.data.id_departemen);
           $('#editOfficerModal form').attr('action', updateURL);
         },
         error: (err) => {
