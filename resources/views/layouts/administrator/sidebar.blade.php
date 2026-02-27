@@ -1,6 +1,6 @@
 <div class="sidebar-menu">
   <ul class="menu">
-    <li class="sidebar-title">Menu</li>
+    <li class="sidebar-title">Menu Utama</li>
 
     <li class="sidebar-item {{ request()->routeIs('administrators.dashboard') ? 'active' : '' }}">
       <a href="{{ Route::has('administrators.dashboard') ? route('administrators.dashboard') : '#' }}" class="sidebar-link">
@@ -92,16 +92,16 @@
       </a>
     </li>
 
-    <li class="sidebar-title"></li>
+
 
     <li class="sidebar-item">
-      <form action="{{ route('logout') }}" method="POST">
+      <form action="{{ route('logout') }}" method="POST" id="logout-form">
         @csrf
-        <a href="{{ route('logout') }}" class="sidebar-link" id="logout">
-          <i class="bi bi-box-arrow-right"></i>
-          <span>Keluar</span>
-        </a>
       </form>
+      <a href="javascript:void(0)" class="sidebar-link" onclick="document.getElementById('logout-form').submit();">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Keluar</span>
+      </a>
     </li>
   </ul>
 </div>

@@ -10,6 +10,16 @@ class PayrollController extends Controller
 {
     public function index()
     {
-        return view('student.payroll.index');
+        $user = auth('student')->user();
+        if (!$user || !$user->id_pegawai) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $payrolls = Penggajian::with(['pegawai.jabatan', 'pegawai.departemen'])
+            ->where('id_pegawai', $user->id_pegawai)
+            ->orderBy('periode', 'desc')
+            ->get();
+
+        return view('student.payroll.index', compact('payrolls'));
     }
 }

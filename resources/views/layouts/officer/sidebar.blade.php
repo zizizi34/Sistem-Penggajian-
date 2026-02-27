@@ -2,83 +2,172 @@
   <ul class="menu">
     <li class="sidebar-title">Menu</li>
 
-    <li class="sidebar-item {{ request()->routeIs('officers.dashboard') ? 'active' : '' }}">
-      <a href="{{ route('officers.dashboard') }}" class="sidebar-link">
-        <i class="bi bi-grid-fill"></i>
-        <span>Beranda</span>
-      </a>
-    </li>
+    {{-- Render menu dinamis berdasarkan permission dari controller --}}
+    @if(isset($menuStructure) && count($menuStructure) > 0)
+      @php $lastGroup = null; @endphp
+      
+      @foreach($menuStructure as $menu)
+        {{-- Render section title hanya jika berbeda dari sebelumnya --}}
+        @if($menu['title'] !== 'Dashboard' && $menu['title'] !== 'Profile')
+          @if($lastGroup !== $menu['title'])
+            <li class="sidebar-title">
+              @switch($menu['title'])
+                @case('My Team')
+                  Tim Saya
+                  @break
+                @case('Absensi')
+                  Absensi
+                  @break
+                @case('Lembur')
+                  Lembur
+                  @break
+                @case('Penggajian')
+                  Penggajian
+                  @break
+                @case('Laporan')
+                  Laporan
+                  @break
+                @default
+                  {{ $menu['title'] }}
+              @endswitch
+            </li>
+            @php $lastGroup = $menu['title']; @endphp
+          @endif
+        @endif
 
-    <li class="sidebar-title">Data Master</li>
+        {{-- Render menu item utama --}}
+        <li class="sidebar-item {{ request()->route()?->getName() === $menu['route'] ? 'active' : '' }} @if(count($menu['children'] ?? []) > 0) has-sub @endif">
+          @if(count($menu['children'] ?? []) > 0)
+            {{-- Menu dengan submenu --}}
+            <a href="#" class="sidebar-link">
+              <i class="bi bi-{{ $menu['icon'] ?? 'dot' }}" 
+                 @switch($menu['icon'])
+                   @case('home')
+                     class="bi bi-grid-fill"
+                   @break
+                   @case('users')
+                     class="bi bi-people-fill"
+                   @break
+                   @case('calendar')
+                     class="bi bi-calendar-check-fill"
+                   @break
+                   @case('clock')
+                     class="bi bi-clock-history"
+                   @break
+                   @case('dollar-sign')
+                     class="bi bi-cash-coin"
+                   @break
+                   @case('bar-chart')
+                     class="bi bi-bar-chart-fill"
+                   @break
+                   @case('user')
+                     class="bi bi-person-circle"
+                   @break
+                   @default
+                     class="bi bi-dot"
+                 @endswitch
+              ></i>
+              <span>{{ $menu['title'] }}</span>
+            </a>
 
-    <li class="sidebar-item {{ request()->routeIs('officers.departemen.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.departemen.index') }}" class="sidebar-link">
-        <i class="bi bi-building"></i>
-        <span>Departemen</span>
-      </a>
-    </li>
+            {{-- Submenu items --}}
+            <ul class="submenu">
+              @foreach($menu['children'] as $child)
+                <li class="submenu-item {{ request()->route()?->getName() === $child['route'] ? 'active' : '' }}">
+                  <a href="{{ isset($child['route']) ? route($child['route']) : '#' }}" class="submenu-link">
+                    {{ $child['title'] }}
+                  </a>
+                </li>
+              @endforeach
+            </ul>
+          @else
+            {{-- Menu tanpa submenu --}}
+            <a href="{{ $menu['route'] ? route($menu['route']) : '#' }}" class="sidebar-link">
+              <i class="bi bi-{{ $menu['icon'] ?? 'dot' }}"
+                 @switch($menu['icon'])
+                   @case('home')
+                     class="bi bi-grid-fill"
+                   @break
+                   @case('users')
+                     class="bi bi-people-fill"
+                   @break
+                   @case('calendar')
+                     class="bi bi-calendar-check-fill"
+                   @break
+                   @case('clock')
+                     class="bi bi-clock-history"
+                   @break
+                   @case('dollar-sign')
+                     class="bi bi-cash-coin"
+                   @break
+                   @case('bar-chart')
+                     class="bi bi-bar-chart-fill"
+                   @break
+                   @case('user')
+                     class="bi bi-person-circle"
+                   @break
+                   @default
+                     class="bi bi-dot"
+                 @endswitch
+              ></i>
+              <span>
+                {{ $menu['title'] }}
+                @if(isset($menu['description']))
+                  <small class="d-block text-muted">({{ $menu['description'] }})</small>
+                @endif
+              </span>
+            </a>
+          @endif
+        </li>
+      @endforeach
+    @else
+      {{-- Fallback jika menuStructure tidak tersedia (untuk backward compatibility) --}}
+      <li class="sidebar-item {{ request()->routeIs('officers.dashboard') ? 'active' : '' }}">
+        <a href="{{ route('officers.dashboard') }}" class="sidebar-link">
+          <i class="bi bi-grid-fill"></i>
+          <span>Beranda</span>
+        </a>
+      </li>
 
-    <li class="sidebar-item {{ request()->routeIs('officers.jadwal-kerja.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.jadwal-kerja.index') }}" class="sidebar-link">
-        <i class="bi bi-clock-fill"></i>
-        <span>Jadwal Kerja</span>
-      </a>
-    </li>
+      <li class="sidebar-item {{ request()->routeIs('officers.pegawai.*') ? 'active' : '' }}">
+        <a href="{{ route('officers.pegawai.index') }}" class="sidebar-link">
+          <i class="bi bi-people-fill"></i>
+          <span>Tim Saya</span>
+        </a>
+      </li>
 
-    <li class="sidebar-item {{ request()->routeIs('officers.jabatan.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.jabatan.index') }}" class="sidebar-link">
-        <i class="bi bi-briefcase-fill"></i>
-        <span>Jabatan</span>
-      </a>
-    </li>
+      <li class="sidebar-item {{ request()->routeIs('officers.absensi.*') ? 'active' : '' }}">
+        <a href="{{ route('officers.absensi.index') }}" class="sidebar-link">
+          <i class="bi bi-calendar-check-fill"></i>
+          <span>Absensi</span>
+        </a>
+      </li>
 
-    <li class="sidebar-item {{ request()->routeIs('officers.tunjangan.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.tunjangan.index') }}" class="sidebar-link">
-        <i class="bi bi-plus-circle-fill"></i>
-        <span>Tunjangan</span>
-      </a>
-    </li>
+      <li class="sidebar-item {{ request()->routeIs('officers.lembur.*') ? 'active' : '' }}">
+        <a href="{{ route('officers.lembur.index') }}" class="sidebar-link">
+          <i class="bi bi-clock-history"></i>
+          <span>Lembur</span>
+        </a>
+      </li>
 
-    <li class="sidebar-item {{ request()->routeIs('officers.potongan.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.potongan.index') }}" class="sidebar-link">
-        <i class="bi bi-dash-circle-fill"></i>
-        <span>Potongan</span>
-      </a>
-    </li>
-
-    <li class="sidebar-title">Penggajian</li>
-
-    <li class="sidebar-item {{ request()->routeIs('officers.pegawai.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.pegawai.index') }}" class="sidebar-link">
-        <i class="bi bi-people-fill"></i>
-        <span>Pegawai</span>
-      </a>
-    </li>
-
-    <li class="sidebar-item {{ request()->routeIs('officers.penggajian.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.penggajian.index') }}" class="sidebar-link">
-        <i class="bi bi-file-earmark-text"></i>
-        <span>Data Penggajian</span>
-      </a>
-    </li>
-
-    <li class="sidebar-item {{ request()->routeIs('officers.profile-settings.*') ? 'active' : '' }}">
-      <a href="{{ route('officers.profile-settings.index') }}" class="sidebar-link">
-        <i class="bi bi-person-fill-gear"></i>
-        <span>Pengaturan Profil</span>
-      </a>
-    </li>
+      <li class="sidebar-item {{ request()->routeIs('officers.penggajian.*') ? 'active' : '' }}">
+        <a href="{{ route('officers.penggajian.index') }}" class="sidebar-link">
+          <i class="bi bi-cash-coin"></i>
+          <span>Penggajian</span>
+        </a>
+      </li>
+    @endif
 
     <li class="sidebar-title"></li>
 
     <li class="sidebar-item">
-      <form action="{{ route('logout') }}" method="POST">
+      <form action="{{ route('logout') }}" method="POST" id="logout-form">
         @csrf
-        <a href="{{ route('logout') }}" class="sidebar-link" id="logout">
-          <i class="bi bi-box-arrow-right"></i>
-          <span>Keluar</span>
-        </a>
       </form>
+      <a href="javascript:void(0)" class="sidebar-link" onclick="document.getElementById('logout-form').submit();">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Keluar</span>
+      </a>
     </li>
   </ul>
 </div>

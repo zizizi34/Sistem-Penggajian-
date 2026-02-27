@@ -91,4 +91,70 @@
         </div>
     </div>
 </div>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-12 col-md-10 col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Riwayat Absensi</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Jam Masuk</th>
+                                <th>Jam Pulang</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($history as $item)
+                                <tr>
+                                    <td>{{ \Carbon\Carbon::parse($item->tanggal_absensi)->translatedFormat('l, d F Y') }}</td>
+                                    <td>
+                                        @if($item->jam_masuk)
+                                            <span class="text-success"><i class="fas fa-sign-in-alt me-1"></i> {{ $item->jam_masuk }}</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($item->jam_pulang)
+                                            <span class="text-warning"><i class="fas fa-sign-out-alt me-1"></i> {{ $item->jam_pulang }}</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($item->status == 'hadir')
+                                            <span class="badge bg-success">Hadir</span>
+                                        @elseif($item->status == 'terlambat')
+                                            <span class="badge bg-warning">Terlambat</span>
+                                        @elseif($item->status == 'izin')
+                                            <span class="badge bg-info">Izin</span>
+                                        @elseif($item->status == 'sakit')
+                                            <span class="badge bg-primary">Sakit</span>
+                                        @else
+                                            <span class="badge bg-secondary">{{ ucfirst($item->status) }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted border-0 py-3">Belum ada riwayat absensi.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-end mt-3">
+                    {{ $history->links('pagination::bootstrap-5') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

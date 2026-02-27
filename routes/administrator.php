@@ -12,70 +12,109 @@ use App\Http\Controllers\Administrator\OfficerController;
 use App\Http\Controllers\Administrator\ProfileSettingController;
 use App\Http\Controllers\Administrator\UserController;
 use App\Http\Controllers\Administrator\JadwalKerjaController;
+use App\Http\Controllers\Administrator\AbsensiController;
+use App\Http\Controllers\Administrator\LemburController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:administrator')->name('administrators.')->prefix('administrator')->group(function () {
+/**
+ * Administrator Routes - Production Ready
+ * 
+ * Routes untuk Super Admin dengan full access to all resources.
+ * 
+ * Middleware:
+ * - auth:administrator: Authenticate via administrator guard
+ * - role.access: Check role-based access (Super Admin)
+ * 
+ * Features:
+ * - Full CRUD for all resources
+ * - User & Role Management
+ * - Master Data Management
+ * - Payroll Calculation & Approval
+ * - System Settings
+ * - Activity Logging & Audit Trail
+ */
+Route::middleware(['auth:administrator', 'role.access'])->name('administrators.')->prefix('administrator')->group(function () {
+    // Dashboard & Overview
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    // Data Master - Tunjangan
-    Route::get('tunjangan', [TunjanganController::class, 'index'])->name('tunjangan.index');
-    Route::get('tunjangan/create', [TunjanganController::class, 'create'])->name('tunjangan.create');
-    Route::post('tunjangan', [TunjanganController::class, 'store'])->name('tunjangan.store');
-    Route::get('tunjangan/{id}', [TunjanganController::class, 'show'])->name('tunjangan.show');
-    Route::get('tunjangan/{id}/edit', [TunjanganController::class, 'edit'])->name('tunjangan.edit');
-    Route::put('tunjangan/{id}', [TunjanganController::class, 'update'])->name('tunjangan.update');
-    Route::delete('tunjangan/{id}', [TunjanganController::class, 'destroy'])->name('tunjangan.destroy');
-
-    // Data Master - Potongan
-    Route::get('potongan', [PotonganController::class, 'index'])->name('potongan.index');
-    Route::get('potongan/create', [PotonganController::class, 'create'])->name('potongan.create');
-    Route::post('potongan', [PotonganController::class, 'store'])->name('potongan.store');
-    Route::get('potongan/{id}', [PotonganController::class, 'show'])->name('potongan.show');
-    Route::get('potongan/{id}/edit', [PotonganController::class, 'edit'])->name('potongan.edit');
-    Route::put('potongan/{id}', [PotonganController::class, 'update'])->name('potongan.update');
-    Route::delete('potongan/{id}', [PotonganController::class, 'destroy'])->name('potongan.destroy');
-
-    // Data Master - Ptkp Status
-    Route::get('ptkp-status', [PtkpStatusController::class, 'index'])->name('ptkp-status.index');
-    Route::get('ptkp-status/create', [PtkpStatusController::class, 'create'])->name('ptkp-status.create');
-    Route::post('ptkp-status', [PtkpStatusController::class, 'store'])->name('ptkp-status.store');
-    Route::get('ptkp-status/{id}', [PtkpStatusController::class, 'show'])->name('ptkp-status.show');
-    Route::get('ptkp-status/{id}/edit', [PtkpStatusController::class, 'edit'])->name('ptkp-status.edit');
-    Route::put('ptkp-status/{id}', [PtkpStatusController::class, 'update'])->name('ptkp-status.update');
-    Route::delete('ptkp-status/{id}', [PtkpStatusController::class, 'destroy'])->name('ptkp-status.destroy');
-
-    // Data Master - Departemen
+    // ==================== DATA MASTER ====================
+    
+    // Departemen
     Route::resource('departemen', DepartemenController::class);
 
-    // Data Master - Jadwal Kerja
+    // Jabatan
+    Route::resource('jabatan', JabatanController::class);
+
+    // Jadwal Kerja
     Route::resource('jadwal-kerja', JadwalKerjaController::class)->only(['index', 'store', 'destroy']);
+
+    // PTKP Status
+    Route::resource('ptkp-status', PtkpStatusController::class);
+
+    // ==================== KOMPONEN GAJI ====================
     
-    // Data Master - Jabatan
-    Route::get('jabatan', [JabatanController::class, 'index'])->name('jabatan.index');
-    Route::get('jabatan/create', [JabatanController::class, 'create'])->name('jabatan.create');
-    Route::post('jabatan', [JabatanController::class, 'store'])->name('jabatan.store');
-    Route::get('jabatan/{id}', [JabatanController::class, 'show'])->name('jabatan.show');
-    Route::get('jabatan/{id}/edit', [JabatanController::class, 'edit'])->name('jabatan.edit');
-    Route::put('jabatan/{id}', [JabatanController::class, 'update'])->name('jabatan.update');
-    Route::delete('jabatan/{id}', [JabatanController::class, 'destroy'])->name('jabatan.destroy');
+    // Tunjangan
+    Route::resource('tunjangan', TunjanganController::class);
 
-    // Payroll & Pegawai
-    Route::resource('pegawai', PegawaiController::class)->only('index', 'show');
-    Route::resource('penggajian', PenggajianController::class)->only('index', 'show');
-    Route::post('penggajian/calculate', [PenggajianController::class, 'calculate'])->name('penggajian.calculate');
+    // Potongan
+    Route::resource('potongan', PotonganController::class);
 
-    Route::resource('users', UserController::class)->except(
-        'create',
-        'show',
-        'edit'
-    );
+    // ==================== EMPLOYEE MANAGEMENT ====================
+    
+    // Pegawai
+    Route::resource('pegawai', PegawaiController::class);
 
-    Route::resource('officers', OfficerController::class)->except(
-        'create',
-        'show',
-        'edit'
-    );
+    // ==================== ATTENDANCE & OVERTIME ====================
+    
+    // Absensi - Full management
+    Route::controller(AbsensiController::class)->group(function () {
+        Route::get('/absensi', 'index')->name('absensi.index');
+        Route::get('/absensi/create', 'create')->name('absensi.create');
+        Route::post('/absensi', 'store')->name('absensi.store');
+        Route::get('/absensi/{id}', 'show')->name('absensi.show');
+        Route::get('/absensi/{id}/edit', 'edit')->name('absensi.edit');
+        Route::put('/absensi/{id}', 'update')->name('absensi.update');
+        Route::post('/absensi/{id}/approve', 'approve')->name('absensi.approve');
+        Route::delete('/absensi/{id}', 'destroy')->name('absensi.destroy');
+    });
 
+    // Lembur - Full management
+    Route::controller(LemburController::class)->group(function () {
+        Route::get('/lembur', 'index')->name('lembur.index');
+        Route::get('/lembur/create', 'create')->name('lembur.create');
+        Route::post('/lembur', 'store')->name('lembur.store');
+        Route::get('/lembur/{id}', 'show')->name('lembur.show');
+        Route::get('/lembur/{id}/edit', 'edit')->name('lembur.edit');
+        Route::put('/lembur/{id}', 'update')->name('lembur.update');
+        Route::post('/lembur/{id}/approve', 'approve')->name('lembur.approve');
+        Route::delete('/lembur/{id}', 'destroy')->name('lembur.destroy');
+    });
+
+    // ==================== PAYROLL MANAGEMENT ====================
+    
+    // Penggajian / Payroll
+    Route::controller(PenggajianController::class)->group(function () {
+        Route::get('/penggajian', 'index')->name('penggajian.index');
+        Route::get('/penggajian/{id}', 'show')->name('penggajian.show');
+        
+        // Batch operations
+        Route::post('/penggajian/calculate', 'calculate')->name('penggajian.calculate');
+        Route::post('/penggajian/approve', 'approve')->name('penggajian.approve');
+        Route::post('/penggajian/post', 'post')->name('penggajian.post');
+        Route::post('/penggajian/generate-slip', 'generateSlip')->name('penggajian.generate-slip');
+        Route::get('/penggajian/{id}/slip', 'downloadSlip')->name('penggajian.download-slip');
+        Route::post('/penggajian/export', 'export')->name('penggajian.export');
+    });
+
+    // ==================== SYSTEM MANAGEMENT ====================
+    
+    // User Management
+    Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
+
+    // Officer Management
+    Route::resource('officers', OfficerController::class)->except(['create', 'show', 'edit']);
+
+    // Profile Settings
     Route::controller(ProfileSettingController::class)->group(function () {
         Route::get('/profile/settings', 'index')->name('profile-settings.index');
         Route::put('/profile/settings', 'update')->name('profile-settings.update');

@@ -10,7 +10,25 @@ class PenggajianController extends Controller
 {
     public function index()
     {
-        $penggajian = Penggajian::with('pegawai')->get();
+        $officer = auth('officer')->user();
+        $departemenId = $officer->id_departemen;
+
+        $penggajian = Penggajian::whereHas('pegawai', function ($q) use ($departemenId) {
+            $q->where('id_departemen', $departemenId);
+        })->with('pegawai')->get();
+
         return view('officer.penggajian.index', compact('penggajian'));
+    }
+
+    public function show($id)
+    {
+        $officer = auth('officer')->user();
+        $departemenId = $officer->id_departemen;
+
+        $penggajian = Penggajian::whereHas('pegawai', function ($q) use ($departemenId) {
+            $q->where('id_departemen', $departemenId);
+        })->with('pegawai')->findOrFail($id);
+
+        return view('officer.penggajian.show', compact('penggajian'));
     }
 }

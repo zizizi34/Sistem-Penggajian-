@@ -140,7 +140,7 @@
           </div>
           <div class="float-end">
             <p>
-              <a href="https://saugi.me">Narendra</a>
+              <a href="">Narendra</a>
             </p>
           </div>
         </div>
