@@ -7,6 +7,8 @@ use App\Models\Departemen;
 use App\Models\Jabatan;
 use App\Models\Pegawai;
 use App\Models\Penggajian;
+use App\Models\Lembur; // Import Lembur model
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -33,6 +35,8 @@ class DashboardController extends Controller
            
         $absensis = $absensiQuery->get();
         
+        // Ambil SEMUA jadwal tanpa filter hari — karena nilai hari di DB adalah rentang
+        // seperti 'Senin-Jumat', bukan nama hari tunggal. Filter hari tidak relevan di sini.
         $jadwalQuery = \App\Models\JadwalKerja::query();
         if ($isRestricted) {
             $jadwalQuery->where('id_departemen', $idDept);
@@ -56,16 +60,72 @@ class DashboardController extends Controller
             }
         }
         
-        $lemburQuery = \Illuminate\Support\Facades\DB::table('lembur')
+        // Logic for detecting automatic overtime
+        // Ambil pegawai yang sudah masuk tapi belum pulang
+        $overtimeCandidatesQuery = \App\Models\Absensi::with(['pegawai.departemen'])
+            ->where('tanggal_absensi', $todayDate)
+            ->whereNotNull('jam_masuk')
+            ->whereNull('jam_pulang');
+            
+        if ($isRestricted) {
+            $overtimeCandidatesQuery->whereHas('pegawai', function($q) use ($idDept) {
+                $q->where('id_departemen', $idDept);
+            });
+        }
+        $overtimeCandidates = $overtimeCandidatesQuery->get();
+        
+        $overtimeList = [];
+        $currentTime = Carbon::now();
+        
+        foreach ($overtimeCandidates as $ab) {
+            if (!$ab->pegawai || !$ab->pegawai->id_departemen) continue;
+            $jadwal = $jadwals[$ab->pegawai->id_departemen] ?? null;
+            if ($jadwal && $jadwal->jam_pulang) {
+                // Gabungkan tanggal hari ini + jam jadwal pulang agar perbandingan tepat
+                $jadwalPulang = Carbon::parse($todayDate . ' ' . $jadwal->jam_pulang);
+                // Jika jam sekarang sudah melewati jam jadwal pulang → dianggap lembur
+                if ($currentTime->greaterThan($jadwalPulang)) {
+                    $overtimeMenit = (int) $currentTime->diffInMinutes($jadwalPulang);
+                    $ab->overtime_menit = $overtimeMenit;
+                    $overtimeList[] = $ab;
+
+                    // Auto-create record lembur di database jika belum ada untuk hari ini
+                    $existingLembur = Lembur::where('id_pegawai', $ab->id_pegawai)
+                        ->whereDate('tanggal_lembur', $todayDate)
+                        ->first();
+
+                    if (!$existingLembur) {
+                        Lembur::create([
+                            'id_pegawai'     => $ab->id_pegawai,
+                            'tanggal_lembur' => $todayDate,
+                            'jam_mulai'      => $jadwal->jam_pulang, // Lembur mulai dari jam jadwal pulang
+                            'jam_selesai'    => null,                // Belum selesai (masih berjalan)
+                            'durasi'         => null,
+                            'keterangan'     => 'Lembur otomatis terdeteksi - belum absen pulang',
+                            'status'         => 'pending',
+                        ]);
+                    } else {
+                        // Update jam selesai sementara jika masih pending
+                        if ($existingLembur->status === 'pending') {
+                            $existingLembur->jam_selesai = $currentTime->format('H:i:s');
+                            $existingLembur->durasi      = round($overtimeMenit / 60, 2);
+                            $existingLembur->save();
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Load lemburList SETELAH auto-create agar data terbaru langsung muncul di dashboard
+        $lemburListQuery = \Illuminate\Support\Facades\DB::table('lembur')
             ->join('pegawai', 'lembur.id_pegawai', '=', 'pegawai.id_pegawai')
             ->where('tanggal_lembur', $todayDate)
             ->select('lembur.*', 'pegawai.nama_pegawai');
             
         if ($isRestricted) {
-            $lemburQuery->where('pegawai.id_departemen', $idDept);
+            $lemburListQuery->where('pegawai.id_departemen', $idDept);
         }
-            
-        $lemburList = $lemburQuery->get();
+        $lemburList = $lemburListQuery->get();
         
         $pegawaiQuery = Pegawai::query();
         $penggajianQuery = Penggajian::with('pegawai');
@@ -83,11 +143,11 @@ class DashboardController extends Controller
             'totalJabatan' => $isRestricted ? Jabatan::where('id_departemen', $idDept)->count() : Jabatan::count(),
             'totalPenggajian' => $penggajianQuery->count(),
             'recentPenggajian' => $penggajianQuery->take(5)->get(),
-            'totalHadir' => $absensis->where('status', 'hadir')->count(),
+            'totalHadir' => $absensis->whereIn('status', ['hadir', 'approved'])->count(),
             'recentAbsensi' => $absensis->sortByDesc('jam_masuk')->take(5),
             'terlambatList' => collect($terlambatList)->sortByDesc('jam_masuk')->values(),
             'lemburList' => $lemburList,
+            'overtimeList' => collect($overtimeList)->sortByDesc('overtime_menit')->values(),
         ]);
     }
 }
-

@@ -143,12 +143,20 @@
         </a>
       </li>
 
+      <li class="sidebar-item {{ request()->routeIs('officers.jadwal-kerja.*') ? 'active' : '' }}">
+        <a href="{{ route('officers.jadwal-kerja.index') }}" class="sidebar-link">
+          <i class="bi bi-calendar3"></i>
+          <span>Jadwal Kerja</span>
+        </a>
+      </li>
+
       <li class="sidebar-item {{ request()->routeIs('officers.lembur.*') ? 'active' : '' }}">
         <a href="{{ route('officers.lembur.index') }}" class="sidebar-link">
           <i class="bi bi-clock-history"></i>
           <span>Lembur</span>
         </a>
       </li>
+
 
       <li class="sidebar-item {{ request()->routeIs('officers.penggajian.*') ? 'active' : '' }}">
         <a href="{{ route('officers.penggajian.index') }}" class="sidebar-link">
@@ -158,7 +166,14 @@
       </li>
     @endif
 
-    <li class="sidebar-title"></li>
+    <li class="sidebar-title">Akun</li>
+
+    <li class="sidebar-item {{ request()->routeIs('officers.profile-settings.index') ? 'active' : '' }}">
+      <a href="{{ route('officers.profile-settings.index') }}" class="sidebar-link">
+        <i class="bi bi-person-circle"></i>
+        <span>Pengaturan Profil</span>
+      </a>
+    </li>
 
     <li class="sidebar-item">
       <form action="{{ route('logout') }}" method="POST" id="logout-form">

@@ -9,35 +9,67 @@ use Illuminate\Http\Request;
 
 class JadwalKerjaController extends Controller
 {
-    public function index()
+    /**
+     * Ambil ID departemen petugas yang sedang login.
+     */
+    private function getOfficerDeptId(): int
     {
-        $jadwals = JadwalKerja::with('departemen')->get();
-        $departemens = Departemen::all();
-        return view('officer.jadwal.index', compact('jadwals', 'departemens'));
+        return (int) auth('officer')->user()->id_departemen;
     }
 
+    /**
+     * Tampilkan jadwal kerja HANYA untuk departemen petugas sendiri.
+     */
+    public function index()
+    {
+        $deptId      = $this->getOfficerDeptId();
+        $departemen  = Departemen::findOrFail($deptId);   // Info departemen sendiri
+        $jadwals     = JadwalKerja::with('departemen')
+                            ->where('id_departemen', $deptId)
+                            ->get();
+
+        return view('officer.jadwal.index', compact('jadwals', 'departemen'));
+    }
+
+    /**
+     * Simpan jadwal — id_departemen selalu diset ke departemen petugas sendiri
+     * agar tidak bisa manipulasi ke departemen lain.
+     */
     public function store(Request $request)
     {
+        $deptId = $this->getOfficerDeptId();
+
         $validated = $request->validate([
-            'id_departemen' => 'required|exists:departemen,id_departemen',
-            'hari' => 'required|string',
-            'jam_masuk' => 'required',
-            'jam_pulang' => 'required',
-            'toleransi_terlambat' => 'required|integer|min:0',
+            'hari'                 => 'required|string',
+            'jam_masuk'            => 'required',
+            'jam_pulang'           => 'required',
+            'toleransi_terlambat'  => 'required|integer|min:0',
         ]);
 
+        // Paksa departemen sesuai petugas — input dari form diabaikan
+        $validated['id_departemen'] = $deptId;
+
         JadwalKerja::updateOrCreate(
-            ['id_departemen' => $validated['id_departemen']],
+            ['id_departemen' => $deptId],
             $validated
         );
 
-        return redirect()->back()->with('success', 'Jadwal kerja berhasil disimpan');
+        return redirect()->back()->with('success', 'Jadwal kerja berhasil disimpan.');
     }
 
+    /**
+     * Hapus jadwal — hanya boleh hapus jadwal milik departemen sendiri.
+     */
     public function destroy($id)
     {
-        $jadwal = JadwalKerja::findOrFail($id);
+        $deptId = $this->getOfficerDeptId();
+
+        $jadwal = JadwalKerja::where('id_jadwal', $id)
+                              ->where('id_departemen', $deptId)
+                              ->firstOrFail();
+
         $jadwal->delete();
-        return redirect()->back()->with('success', 'Jadwal kerja berhasil dihapus');
+
+        return redirect()->back()->with('success', 'Jadwal kerja berhasil dihapus.');
     }
 }

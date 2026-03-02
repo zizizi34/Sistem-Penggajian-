@@ -40,18 +40,45 @@ class AttendanceController extends BaseController
             $pegawaiId = $user->id_pegawai;
             $today = now()->format('Y-m-d');
 
+            // Absensi hari ini
             $attendance = Absensi::where('id_pegawai', $pegawaiId)
                 ->whereDate('tanggal_absensi', $today)
                 ->first();
 
-            $history = Absensi::where('id_pegawai', $pegawaiId)
-                ->orderBy('tanggal_absensi', 'desc')
-                ->paginate(10);
+            // Statistik keseluruhan
+            $totalHadir  = Absensi::where('id_pegawai', $pegawaiId)->whereIn('status', ['hadir', 'terlambat'])->count();
+            $totalIzin   = Absensi::where('id_pegawai', $pegawaiId)->where('status', 'izin')->count();
+            $totalSakit  = Absensi::where('id_pegawai', $pegawaiId)->where('status', 'sakit')->count();
+            $totalAlpha  = Absensi::where('id_pegawai', $pegawaiId)->where('status', 'alpha')->count();
+
+            // Query history dengan filter
+            $query = Absensi::where('id_pegawai', $pegawaiId);
+
+            if ($request->filled('tanggal_dari')) {
+                $query->whereDate('tanggal_absensi', '>=', $request->tanggal_dari);
+            }
+
+            if ($request->filled('tanggal_sampai')) {
+                $query->whereDate('tanggal_absensi', '<=', $request->tanggal_sampai);
+            }
+
+            if ($request->filled('status') && $request->status !== 'semua') {
+                $query->where('status', $request->status);
+            }
+
+            $history = $query->orderBy('tanggal_absensi', 'desc')->paginate(10)->withQueryString();
 
             // Log
-            $this->logActivity('read', 'Absensi', null, 'View personal attendance form');
+            $this->logActivity('read', 'Absensi', null, 'View personal attendance');
 
-            return view('student.attendance.index', compact('attendance', 'history'));
+            return view('student.attendance.index', compact(
+                'attendance',
+                'history',
+                'totalHadir',
+                'totalIzin',
+                'totalSakit',
+                'totalAlpha'
+            ));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -135,6 +162,23 @@ class AttendanceController extends BaseController
                     'jam_pulang' => $time,
                     'foto_pulang' => $photoPath,
                 ]);
+
+                // Finalisasi record lembur jika ada lembur otomatis yang masih pending
+                $lemburOtomatis = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+                    ->whereDate('tanggal_lembur', $today)
+                    ->where('status', 'pending')
+                    ->whereNotNull('jam_mulai')
+                    ->first();
+
+                if ($lemburOtomatis) {
+                    $jamMulai   = \Carbon\Carbon::parse($today . ' ' . $lemburOtomatis->jam_mulai);
+                    $jamSelesai = \Carbon\Carbon::parse($today . ' ' . $time);
+                    $durasiJam  = round($jamMulai->diffInMinutes($jamSelesai) / 60, 2);
+
+                    $lemburOtomatis->jam_selesai = $time;
+                    $lemburOtomatis->durasi      = $durasiJam;
+                    $lemburOtomatis->save();
+                }
 
                 // Log
                 $this->logActivity('update', 'Absensi', $attendance->id_absensi, 'Check-out attendance', $oldValues, $attendance->toArray());

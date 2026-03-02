@@ -156,6 +156,25 @@ class AbsensiController extends BaseController
             // Update
             $absensi->update($validated);
 
+            // Jika jam_pulang diisi, finalisasi record lembur pending jika ada
+            if (!empty($validated['jam_pulang'])) {
+                $lemburOtomatis = \App\Models\Lembur::where('id_pegawai', $absensi->id_pegawai)
+                    ->whereDate('tanggal_lembur', $absensi->tanggal_absensi)
+                    ->where('status', 'pending')
+                    ->whereNotNull('jam_mulai')
+                    ->first();
+
+                if ($lemburOtomatis) {
+                    $jamMulai   = \Carbon\Carbon::parse($absensi->tanggal_absensi . ' ' . $lemburOtomatis->jam_mulai);
+                    $jamSelesai = \Carbon\Carbon::parse($absensi->tanggal_absensi . ' ' . $validated['jam_pulang']);
+                    $durasiJam  = round($jamMulai->diffInMinutes($jamSelesai) / 60, 2);
+
+                    $lemburOtomatis->jam_selesai = $validated['jam_pulang'];
+                    $lemburOtomatis->durasi      = max(0, $durasiJam);
+                    $lemburOtomatis->save();
+                }
+            }
+
             // Log
             $this->logActivity('update', 'Absensi', $id, 'Update absensi', $oldValues, $absensi->toArray());
 
