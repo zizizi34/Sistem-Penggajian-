@@ -11,7 +11,7 @@ class Lembur extends Model
 
     protected $table = 'lembur';
     protected $primaryKey = 'id_lembur';
-    protected $fillable = ['id_pegawai', 'tanggal_lembur', 'jam_mulai', 'jam_selesai', 'durasi', 'keterangan'];
+    protected $fillable = ['id_pegawai', 'tanggal_lembur', 'jam_mulai', 'jam_selesai', 'durasi', 'keterangan', 'status', 'approved_at', 'approved_by'];
     public $timestamps = true;
 
     public function pegawai()
