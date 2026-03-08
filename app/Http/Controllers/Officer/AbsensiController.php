@@ -89,7 +89,7 @@ class AbsensiController extends BaseController
                 ->first();
 
             if (!$pegawai) {
-                return $this->responseForbidden('Pegawai tidak ada di departemen Anda');
+                return back()->with('error', 'Pegawai tidak ada di departemen Anda');
             }
 
             // Cek duplikasi
@@ -98,7 +98,7 @@ class AbsensiController extends BaseController
                 ->first();
 
             if ($existing) {
-                return $this->responseError('Absensi sudah ada untuk tanggal tersebut', 400);
+                return back()->with('error', 'Absensi sudah ada untuk tanggal tersebut');
             }
 
             // Create
@@ -111,11 +111,11 @@ class AbsensiController extends BaseController
                 $absensi->toArray()
             );
 
-            return $this->responseSuccess($absensi, 'Absensi berhasil dibuat', 201);
+            return back()->with('success', 'Absensi berhasil dibuat');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->responseError('Validasi gagal', 422, $e->errors());
+            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 500);
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -139,7 +139,7 @@ class AbsensiController extends BaseController
 
             // Prevent edit if approved
             if ($absensi->status === 'approved') {
-                return $this->responseError('Tidak bisa edit absensi yang sudah di-approve', 400);
+                return back()->with('error', 'Tidak bisa edit absensi yang sudah di-approve');
             }
 
             // Validate
@@ -178,9 +178,9 @@ class AbsensiController extends BaseController
             // Log
             $this->logActivity('update', 'Absensi', $id, 'Update absensi', $oldValues, $absensi->toArray());
 
-            return $this->responseSuccess($absensi, 'Absensi berhasil diupdate');
+            return back()->with('success', 'Absensi berhasil diupdate');
         } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 500);
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -214,9 +214,9 @@ class AbsensiController extends BaseController
             // Log
             $this->logActivity('update', 'Absensi', $id, 'Approve absensi', $oldValues, $absensi->toArray());
 
-            return $this->responseSuccess($absensi, 'Absensi berhasil di-approve');
+            return back()->with('success', 'Absensi berhasil di-approve');
         } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 500);
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -239,7 +239,7 @@ class AbsensiController extends BaseController
 
             // Prevent delete if approved
             if ($absensi->status === 'approved') {
-                return $this->responseError('Tidak bisa delete absensi yang sudah di-approve', 400);
+                return back()->with('error', 'Tidak bisa delete absensi yang sudah di-approve');
             }
 
             // Log
@@ -248,9 +248,9 @@ class AbsensiController extends BaseController
             // Delete
             $absensi->delete();
 
-            return $this->responseSuccess(null, 'Absensi berhasil dihapus');
+            return back()->with('success', 'Absensi berhasil dihapus');
         } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 500);
+            return back()->with('error', $e->getMessage());
         }
     }
 

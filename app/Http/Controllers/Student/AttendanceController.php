@@ -45,11 +45,57 @@ class AttendanceController extends BaseController
                 ->whereDate('tanggal_absensi', $today)
                 ->first();
 
-            // Statistik keseluruhan
-            $totalHadir  = Absensi::where('id_pegawai', $pegawaiId)->whereIn('status', ['hadir', 'terlambat'])->count();
-            $totalIzin   = Absensi::where('id_pegawai', $pegawaiId)->where('status', 'izin')->count();
-            $totalSakit  = Absensi::where('id_pegawai', $pegawaiId)->where('status', 'sakit')->count();
-            $totalAlpha  = Absensi::where('id_pegawai', $pegawaiId)->where('status', 'alpha')->count();
+            // Statistik keseluruhan untuk bulan ini
+            $currentMonth = \Carbon\Carbon::now()->month;
+            $currentYear = \Carbon\Carbon::now()->year;
+
+            $totalHadir  = Absensi::where('id_pegawai', $pegawaiId)
+                ->whereMonth('tanggal_absensi', $currentMonth)
+                ->whereYear('tanggal_absensi', $currentYear)
+                ->whereIn('status', ['hadir', 'terlambat'])->count();
+
+            $totalIzin   = Absensi::where('id_pegawai', $pegawaiId)
+                ->whereMonth('tanggal_absensi', $currentMonth)
+                ->whereYear('tanggal_absensi', $currentYear)
+                ->where('status', 'izin')->count();
+
+            // Hitung Total Tidak Masuk berdasarkan Jadwal Kerja bulan ini (sampai hari ini)
+            $totalTidakMasuk = 0;
+            $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
+            
+            if ($jadwal) {
+                $hariKerja = strtolower($jadwal->hari);
+                $workingDaysMap = [
+                    'senin' => 1, 'selasa' => 2, 'rabu' => 3, 'kamis' => 4, 'jumat' => 5, 'sabtu' => 6, 'minggu' => 0
+                ];
+                $allowedDays = [];
+                if (str_contains($hariKerja, '-')) {
+                    $parts = array_map('trim', explode('-', $hariKerja));
+                    if (count($parts) == 2 && isset($workingDaysMap[$parts[0]]) && isset($workingDaysMap[$parts[1]])) {
+                        $start = $workingDaysMap[$parts[0]];
+                        $end = $workingDaysMap[$parts[1]];
+                        if ($start == 0) $start = 7;
+                        if ($end == 0) $end = 7;
+                        for ($i = $start; $i <= $end; $i++) {
+                            $allowedDays[] = $i % 7;
+                        }
+                    }
+                }
+                if (empty($allowedDays)) {
+                    $allowedDays = [1, 2, 3, 4, 5]; // Default Senin-Jumat
+                }
+                
+                $totalWorkingDays = 0;
+                // Hitung jumlah hari kerja dari tanggal 1 sampai hari ini di bulan berjalan
+                for ($day = 1; $day <= \Carbon\Carbon::now()->day; $day++) {
+                    $date = \Carbon\Carbon::createFromDate($currentYear, $currentMonth, $day);
+                    if (in_array($date->dayOfWeek, $allowedDays)) {
+                        $totalWorkingDays++;
+                    }
+                }
+                
+                $totalTidakMasuk = max(0, $totalWorkingDays - ($totalHadir + $totalIzin));
+            }
 
             // Query history dengan filter
             $query = Absensi::where('id_pegawai', $pegawaiId);
@@ -76,8 +122,7 @@ class AttendanceController extends BaseController
                 'history',
                 'totalHadir',
                 'totalIzin',
-                'totalSakit',
-                'totalAlpha'
+                'totalTidakMasuk'
             ));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());

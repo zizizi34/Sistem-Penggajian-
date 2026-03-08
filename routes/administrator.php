@@ -92,18 +92,10 @@ Route::middleware(['auth:administrator', 'role.access'])->name('administrators.'
 
     // ==================== PAYROLL MANAGEMENT ====================
     
-    // Penggajian / Payroll
+    // Penggajian / Payroll - Super Admin hanya LIHAT, tidak bisa hitung
     Route::controller(PenggajianController::class)->group(function () {
         Route::get('/penggajian', 'index')->name('penggajian.index');
         Route::get('/penggajian/{id}', 'show')->name('penggajian.show');
-        
-        // Batch operations
-        Route::post('/penggajian/calculate', 'calculate')->name('penggajian.calculate');
-        Route::post('/penggajian/approve', 'approve')->name('penggajian.approve');
-        Route::post('/penggajian/post', 'post')->name('penggajian.post');
-        Route::post('/penggajian/generate-slip', 'generateSlip')->name('penggajian.generate-slip');
-        Route::get('/penggajian/{id}/slip', 'downloadSlip')->name('penggajian.download-slip');
-        Route::post('/penggajian/export', 'export')->name('penggajian.export');
     });
 
     // ==================== SYSTEM MANAGEMENT ====================

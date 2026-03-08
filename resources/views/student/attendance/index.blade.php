@@ -26,36 +26,42 @@
         <div class="card h-100 shadow-sm border-0">
             <div class="card-body d-flex align-items-center gap-4 p-4">
                 <div class="flex-grow-1">
-                    <p class="text-muted mb-1 fw-semibold">Status Kehadiran Hari Ini</p>
+                    <p class="text-muted mb-1 fs-6">Status Kehadiran Hari Ini</p>
                     @if($attendance)
                         @if(in_array($attendance->status, ['hadir', 'terlambat']))
-                            <h5 class="fw-bold text-success mb-1">
-                                <i class="bi bi-check-circle-fill me-1"></i>
+                            <h4 class="fw-bold text-success mb-1">
                                 {{ ucfirst($attendance->status) }}
-                            </h5>
+                            </h4>
                         @elseif($attendance->status === 'izin')
-                            <h5 class="fw-bold text-info mb-1"><i class="bi bi-calendar2-check me-1"></i>Izin</h5>
+                            <h4 class="fw-bold text-info mb-1">Izin</h4>
                         @elseif($attendance->status === 'sakit')
-                            <h5 class="fw-bold text-warning mb-1"><i class="bi bi-heart-pulse me-1"></i>Sakit</h5>
+                            <h4 class="fw-bold text-warning mb-1">Sakit</h4>
                         @else
-                            <h5 class="fw-bold text-secondary mb-1"><i class="bi bi-dash-circle me-1"></i>{{ ucfirst($attendance->status) }}</h5>
+                            <h4 class="fw-bold text-secondary mb-1">{{ ucfirst($attendance->status) }}</h4>
                         @endif
-                        <small class="text-muted">
+                        <small class="text-muted d-none">
                             Masuk: <strong>{{ $attendance->jam_masuk ?? '-' }}</strong>
                             &nbsp;|&nbsp;
                             Pulang: <strong>{{ $attendance->jam_pulang ?? '-' }}</strong>
                         </small>
                     @else
-                        <h5 class="fw-bold text-secondary mb-1">
-                            <i class="bi bi-dash-circle me-1"></i>Belum Hadir
-                        </h5>
-                        <small class="text-muted">Anda belum melakukan absensi hari ini</small>
+                        <h4 class="fw-bold text-secondary mb-1">
+                            Belum Hadir
+                        </h4>
                     @endif
                 </div>
                 <div>
-                    <a href="{{ route('students.attendance.index') }}" class="btn btn-success btn-sm px-3 py-2" id="btn-absen-sekarang">
-                        <i class="bi bi-fingerprint me-1"></i>Absen Sekarang
-                    </a>
+                    @if(!$attendance || ($attendance->jam_masuk && !$attendance->jam_pulang))
+                        @php $type = !$attendance ? 'masuk' : 'pulang'; @endphp
+                        <form action="{{ route('students.attendance.store') }}" method="POST" enctype="multipart/form-data" id="fast-absen-form">
+                            @csrf
+                            <input type="hidden" name="type" value="{{ $type }}">
+                            <label for="foto-absen" class="btn btn-{{ !$attendance ? 'success' : 'warning' }} px-4 py-2 m-0 shadow-sm" style="cursor: pointer; font-weight: 500; font-size: 15px;">
+                                <i class="bi bi-fingerprint me-1"></i> Absen {{ !$attendance ? 'Sekarang' : 'Pulang' }}
+                            </label>
+                            <input type="file" name="foto" id="foto-absen" accept="image/*" class="d-none" onchange="document.getElementById('fast-absen-form').submit()">
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
@@ -64,31 +70,24 @@
     {{-- Statistik --}}
     <div class="col-12 col-lg-7">
         <div class="card h-100 shadow-sm border-0">
-            <div class="card-body p-4">
-                <p class="text-muted fw-semibold mb-3">Rekap Kehadiran Keseluruhan</p>
-                <div class="row g-3 text-center">
-                    <div class="col-3">
-                        <div class="p-2">
-                            <h3 class="fw-bold text-success mb-0">{{ $totalHadir }}</h3>
-                            <small class="text-muted">Total Hadir</small>
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="row g-0 w-100 text-center">
+                    <div class="col-4 border-end">
+                        <div class="p-2 py-0 text-start">
+                            <span class="text-dark fs-6 d-block mb-2">Total Kehadiran</span>
+                            <h3 class="fw-bold text-dark mb-0">{{ $totalHadir }}</h3>
                         </div>
                     </div>
-                    <div class="col-3">
-                        <div class="p-2">
-                            <h3 class="fw-bold text-info mb-0">{{ $totalIzin }}</h3>
-                            <small class="text-muted">Total Izin</small>
+                    <div class="col-4 border-end px-3">
+                        <div class="p-2 py-0 text-start">
+                            <span class="text-dark fs-6 d-block mb-2">Total Tidak Masuk</span>
+                            <h3 class="fw-bold text-dark mb-0">{{ $totalTidakMasuk }}</h3>
                         </div>
                     </div>
-                    <div class="col-3">
-                        <div class="p-2">
-                            <h3 class="fw-bold text-warning mb-0">{{ $totalSakit }}</h3>
-                            <small class="text-muted">Total Sakit</small>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="p-2">
-                            <h3 class="fw-bold text-danger mb-0">{{ $totalAlpha }}</h3>
-                            <small class="text-muted">Total Alpha</small>
+                    <div class="col-4 ps-3">
+                        <div class="p-2 py-0 text-start">
+                            <span class="text-dark fs-6 d-block mb-2">Total Izin</span>
+                            <h3 class="fw-bold text-dark mb-0">{{ $totalIzin }}</h3>
                         </div>
                     </div>
                 </div>
@@ -97,91 +96,7 @@
     </div>
 </div>
 
-{{-- ===================== FORM ABSEN HARI INI ===================== --}}
-@if(!$attendance)
-<div class="row mb-4 justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-primary text-white fw-semibold">
-                <i class="bi bi-camera me-2"></i>Absen Masuk Hari Ini
-            </div>
-            <div class="card-body p-4">
-                <p class="text-muted small mb-3">{{ now()->translatedFormat('l, d F Y') }}</p>
-                <form action="{{ route('students.attendance.store') }}" method="POST" enctype="multipart/form-data" id="form-absen-masuk">
-                    @csrf
-                    <input type="hidden" name="type" value="masuk">
-                    <div class="form-group mb-3">
-                        <label class="form-label fw-semibold">Foto Selfie Absen Masuk <span class="text-danger">*</span></label>
-                        <input type="file" name="foto" id="foto-masuk" class="form-control" accept="image/*;capture=camera" required>
-                        <small class="text-muted">Ambil foto selfie di lokasi kerja.</small>
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg" id="btn-submit-masuk">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Absen Masuk
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@elseif($attendance->jam_masuk && !$attendance->jam_pulang)
-<div class="row mb-4 justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-warning text-dark fw-semibold">
-                <i class="bi bi-camera me-2"></i>Absen Pulang Hari Ini
-            </div>
-            <div class="card-body p-4">
-                <div class="alert alert-success py-2 mb-3">
-                    <i class="bi bi-check-circle me-1"></i>
-                    Anda sudah masuk pukul <strong>{{ $attendance->jam_masuk }}</strong>
-                </div>
-                <form action="{{ route('students.attendance.store') }}" method="POST" enctype="multipart/form-data" id="form-absen-pulang">
-                    @csrf
-                    <input type="hidden" name="type" value="pulang">
-                    <div class="form-group mb-3">
-                        <label class="form-label fw-semibold">Foto Selfie Absen Pulang <span class="text-danger">*</span></label>
-                        <input type="file" name="foto" id="foto-pulang" class="form-control" accept="image/*;capture=camera" required>
-                        <small class="text-muted">Ambil foto selfie sebelum pulang.</small>
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-warning btn-lg text-dark" id="btn-submit-pulang">
-                            <i class="bi bi-box-arrow-left me-1"></i>Absen Pulang
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@else
-<div class="row mb-4 justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-success text-white fw-semibold">
-                <i class="bi bi-check-all me-2"></i>Absensi Selesai
-            </div>
-            <div class="card-body p-4 text-center">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="bg-light rounded p-3">
-                            <small class="text-muted d-block">Jam Masuk</small>
-                            <strong class="text-success fs-5">{{ $attendance->jam_masuk }}</strong>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="bg-light rounded p-3">
-                            <small class="text-muted d-block">Jam Pulang</small>
-                            <strong class="text-warning fs-5">{{ $attendance->jam_pulang ?? '-' }}</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endif
+{{-- (Form Absen disembunyikan karena sudah menggunakan auto-submit button di atas) --}}
 
 {{-- ===================== TABEL RIWAYAT ABSENSI ===================== --}}
 <div class="row">

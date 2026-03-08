@@ -60,9 +60,15 @@ Route::middleware(['auth:officer', 'department.scope'])->name('officers.')->pref
         Route::delete('/lembur/{id}', 'destroy')->name('lembur.destroy');
     });
 
-    // Payroll & Pegawai (READONLY)
-    Route::resource('pegawai', PegawaiController::class)->only('index', 'show');
-    Route::resource('penggajian', PenggajianController::class)->only('index', 'show');
+    // Pegawai (READONLY)
+    Route::resource('pegawai', PegawaiController::class)->only('index', 'show', 'create', 'store', 'edit', 'update', 'destroy');
+
+    // Penggajian - Officer bisa LIHAT + HITUNG GAJI untuk departemennya
+    Route::controller(PenggajianController::class)->group(function () {
+        Route::get('/penggajian', 'index')->name('penggajian.index');
+        Route::get('/penggajian/{id}', 'show')->name('penggajian.show');
+        Route::post('/penggajian/calculate', 'calculate')->name('penggajian.calculate');
+    });
 
     // Profile Settings
     Route::controller(ProfileSettingController::class)->group(function () {
