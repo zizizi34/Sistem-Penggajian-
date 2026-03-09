@@ -158,12 +158,19 @@
       </li>
 
 
+      @php
+        $namaMyDept = strtolower(auth('officer')->user()?->departemen?->nama_departemen ?? '');
+        $isHrOfficer = str_contains($namaMyDept, 'human resources') || str_contains($namaMyDept, 'hr');
+      @endphp
+
+      @if($isHrOfficer)
       <li class="sidebar-item {{ request()->routeIs('officers.penggajian.*') ? 'active' : '' }}">
         <a href="{{ route('officers.penggajian.index') }}" class="sidebar-link">
           <i class="bi bi-cash-coin"></i>
           <span>Penggajian</span>
         </a>
       </li>
+      @endif
     @endif
 
     <li class="sidebar-title">Akun</li>

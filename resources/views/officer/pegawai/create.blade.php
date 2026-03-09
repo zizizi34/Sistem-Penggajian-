@@ -78,16 +78,33 @@
                     </div>
 
                     <h5 class="mt-4 mb-3 border-bottom pb-2">Informasi Pekerjaan</h5>
-                    
+
+                    {{-- Departemen otomatis dari petugas, tidak bisa diubah --}}
+                    <div class="mb-3">
+                        <label class="form-label">Departemen</label>
+                        @php $officer = auth('officer')->user(); @endphp
+                        <input type="text" class="form-control bg-light" value="{{ $officer->departemen->nama_departemen ?? '-' }}" readonly disabled>
+                        <small class="text-muted"><i class="bi bi-lock"></i> Departemen otomatis mengikuti departemen Anda. Tidak dapat diubah.</small>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="id_jabatan" class="form-label">Jabatan <span class="text-danger">*</span></label>
-                            <select class="form-select" id="id_jabatan" name="id_jabatan" required>
-                                <option value="">Pilih Jabatan</option>
-                                @foreach($jabatan as $j)
-                                    <option value="{{ $j->id_jabatan }}" {{ old('id_jabatan') == $j->id_jabatan ? 'selected' : '' }}>{{ $j->nama_jabatan }}</option>
-                                @endforeach
-                            </select>
+                            @if($jabatan->count() > 0)
+                                <select class="form-select" id="id_jabatan" name="id_jabatan" required>
+                                    <option value="">Pilih Jabatan</option>
+                                    @foreach($jabatan as $j)
+                                        <option value="{{ $j->id_jabatan }}" {{ old('id_jabatan') == $j->id_jabatan ? 'selected' : '' }}>{{ $j->nama_jabatan }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-muted">Hanya jabatan dari departemen <strong>{{ $officer->departemen->nama_departemen ?? '-' }}</strong> yang ditampilkan.</small>
+                            @else
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Belum ada jabatan untuk departemen <strong>{{ $officer->departemen->nama_departemen ?? '-' }}</strong>.
+                                    Hubungi Super Admin untuk menambahkan jabatan terlebih dahulu.
+                                </div>
+                            @endif
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="status_pegawai" class="form-label">Status Pegawai <span class="text-danger">*</span></label>

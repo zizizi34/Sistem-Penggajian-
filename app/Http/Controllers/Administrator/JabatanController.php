@@ -12,7 +12,10 @@ class JabatanController extends Controller
 {
     public function index()
     {
-        $jabatan = Jabatan::with('departemen')->get();
+        $jabatan = Jabatan::with('departemen')
+            ->orderBy('id_departemen')
+            ->orderBy('nama_jabatan')
+            ->get();
         return view('administrator.jabatan.index', compact('jabatan'));
     }
 
@@ -25,10 +28,10 @@ class JabatanController extends Controller
     public function store(Request $request)
     {
         Jabatan::create($request->validate([
-            'nama_jabatan' => 'required|string',
-            'min_gaji' => 'nullable|numeric',
-            'max_gaji' => 'nullable|numeric',
-            'id_departemen' => 'nullable|integer'
+            'nama_jabatan'  => 'required|string|max:100',
+            'id_departemen' => 'required|exists:departemen,id_departemen',
+            'min_gaji'      => 'required|numeric|min:0',
+            'max_gaji'      => 'required|numeric|min:0',
         ]));
         return redirect()->route('administrators.jabatan.index')->with('success', 'Jabatan berhasil ditambah');
     }
@@ -50,10 +53,10 @@ class JabatanController extends Controller
     {
         $jabatan = Jabatan::findOrFail($id);
         $jabatan->update($request->validate([
-            'nama_jabatan' => 'required|string',
-            'min_gaji' => 'nullable|numeric',
-            'max_gaji' => 'nullable|numeric',
-            'id_departemen' => 'nullable|integer'
+            'nama_jabatan'  => 'required|string|max:100',
+            'id_departemen' => 'required|exists:departemen,id_departemen',
+            'min_gaji'      => 'required|numeric|min:0',
+            'max_gaji'      => 'required|numeric|min:0',
         ]));
         return redirect()->route('administrators.jabatan.index')->with('success', 'Jabatan berhasil diubah');
     }

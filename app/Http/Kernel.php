@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\PreventBackHistory::class,
         ],
 
         'api' => [
@@ -66,8 +67,9 @@ class Kernel extends HttpKernel
         
         // Production Ready RBAC Middleware
         'department.scope' => \App\Http\Middleware\DepartmentScope::class,
-        'role.access' => \App\Http\Middleware\RoleBasedAccess::class,
+        'role.access'      => \App\Http\Middleware\RoleBasedAccess::class,
         'check.permission' => \App\Http\Middleware\CheckPermission::class,
-        'check.role' => \App\Http\Middleware\CheckRole::class,
+        'check.role'       => \App\Http\Middleware\CheckRole::class,
+        'hr.only'          => \App\Http\Middleware\HrOnlyAccess::class,
     ];
 }

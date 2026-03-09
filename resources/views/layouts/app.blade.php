@@ -4,6 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>@yield('title') - {{ config('app.name') }}</title>
 
   <link rel="stylesheet" href="{{ asset('css/main/app.css') }}" />
@@ -252,6 +255,24 @@
         });
       });
     });
+
+    // ─── CEGAH TOMBOL BACK SETELAH LOGOUT ───────────────────────────
+    // pageshow terpicu saat halaman dari bfcache (browser back/forward cache)
+    // persisted = true artinya halaman diambil dari cache, bukan dari server
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        // Halaman diambil dari bfcache — paksa reload agar server cek session
+        window.location.reload();
+      }
+    });
+
+    // Tandai halaman ini sebagai halaman authenticated
+    // Jika session sudah tidak valid, server akan redirect ke login
+    window.history.pushState(null, null, window.location.href);
+    window.addEventListener('popstate', function() {
+      window.history.pushState(null, null, window.location.href);
+    });
+    // ────────────────────────────────────────────────────────────────
   </script>
 
 </body>

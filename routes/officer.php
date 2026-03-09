@@ -63,8 +63,9 @@ Route::middleware(['auth:officer', 'department.scope'])->name('officers.')->pref
     // Pegawai (READONLY)
     Route::resource('pegawai', PegawaiController::class)->only('index', 'show', 'create', 'store', 'edit', 'update', 'destroy');
 
-    // Penggajian - Officer bisa LIHAT + HITUNG GAJI untuk departemennya
-    Route::controller(PenggajianController::class)->group(function () {
+    // Penggajian - HANYA untuk HR Officer (Human Resources)
+    // Petugas departemen lain tidak memiliki akses ke fitur ini
+    Route::middleware(['hr.only'])->controller(PenggajianController::class)->group(function () {
         Route::get('/penggajian', 'index')->name('penggajian.index');
         Route::get('/penggajian/{id}', 'show')->name('penggajian.show');
         Route::post('/penggajian/calculate', 'calculate')->name('penggajian.calculate');

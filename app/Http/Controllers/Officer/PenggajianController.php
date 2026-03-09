@@ -11,7 +11,10 @@ use Carbon\Carbon;
 
 /**
  * Officer/PenggajianController
- * HR Officer bertanggung jawab menghitung & melihat penggajian departemennya.
+ *
+ * Hanya dapat diakses oleh officer dari departemen Human Resources.
+ * HR Officer bertanggung jawab menghitung & mengelola penggajian
+ * SELURUH pegawai perusahaan (semua departemen).
  */
 class PenggajianController extends Controller
 {
@@ -29,72 +32,76 @@ class PenggajianController extends Controller
     }
 
     /**
-     * Tampilkan daftar penggajian departemen, dengan filter bulan.
+     * Tampilkan daftar penggajian SEMUA pegawai (lintas departemen).
+     * HR bisa filter per periode dan per departemen.
      */
     public function index(Request $request)
     {
-        $officer      = auth('officer')->user();
-        $departemenId = $officer->id_departemen;
-
-        $query = Penggajian::whereHas('pegawai', function ($q) use ($departemenId) {
-            $q->where('id_departemen', $departemenId);
-        })->with(['pegawai', 'pegawai.jabatan']);
+        // HR melihat semua penggajian seluruh departemen
+        $query = Penggajian::with(['pegawai', 'pegawai.jabatan', 'pegawai.departemen']);
 
         // Filter berdasarkan periode
         $periodeFilter = null;
         $periodeLabel  = null;
 
         if ($request->filled('periode')) {
-            $periodeRaw   = $request->periode; // "2026-01"
+            $periodeRaw   = $request->periode; // "2026-03"
             $periodeLabel = $this->toPeriodeLabel($periodeRaw);
             $query->where('periode', $periodeLabel);
             $periodeFilter = $periodeRaw;
         }
 
+        // Filter opsional berdasarkan departemen (untuk kemudahan HR)
+        if ($request->filled('departemen_id')) {
+            $query->whereHas('pegawai', function ($q) use ($request) {
+                $q->where('id_departemen', $request->departemen_id);
+            });
+        }
+
         $penggajian = $query->orderBy('created_at', 'desc')->get();
 
-        return view('officer.penggajian.index', compact('penggajian', 'periodeFilter', 'periodeLabel'));
+        // Daftar departemen untuk filter dropdown
+        $departemens = \App\Models\Departemen::orderBy('nama_departemen')->get();
+
+        return view('officer.penggajian.index', compact(
+            'penggajian', 'periodeFilter', 'periodeLabel', 'departemens'
+        ));
     }
 
     /**
-     * Detail penggajian.
+     * Detail penggajian — HR bisa lihat siapapun.
      */
     public function show($id)
     {
-        $officer      = auth('officer')->user();
-        $departemenId = $officer->id_departemen;
-
-        $penggajian = Penggajian::whereHas('pegawai', function ($q) use ($departemenId) {
-            $q->where('id_departemen', $departemenId);
-        })->with(['pegawai', 'pegawai.jabatan', 'pegawai.departemen'])->findOrFail($id);
+        $penggajian = Penggajian::with(['pegawai', 'pegawai.jabatan', 'pegawai.departemen'])
+            ->findOrFail($id);
 
         return view('officer.penggajian.show', compact('penggajian'));
     }
 
     /**
-     * Hitung dan simpan penggajian bulanan untuk DEPARTEMEN sendiri.
-     * Tanggal transfer ditetapkan di akhir bulan yang dipilih.
+     * Hitung dan simpan penggajian bulanan SEMUA departemen.
+     * HR bisa hitung semua pegawai aktif sekaligus, atau per departemen tertentu.
      */
     public function calculate(Request $request)
     {
         $request->validate([
-            'periode' => 'required|regex:/^\d{4}-\d{2}$/',
+            'periode'       => 'required|regex:/^\d{4}-\d{2}$/',
+            'departemen_id' => 'nullable|exists:departemen,id_departemen',
         ]);
 
-        $officer      = auth('officer')->user();
-        $departemenId = $officer->id_departemen;
-        $periodeRaw   = $request->periode;
-
-        // Label tampilan Indonesia: "Januari 2026"
+        $periodeRaw      = $request->periode;
         $periodeLabel    = $this->toPeriodeLabel($periodeRaw);
         $tanggalTransfer = Carbon::createFromFormat('Y-m', $periodeRaw)->endOfMonth()->format('Y-m-d');
 
         $salaryService = app(SalaryCalculationService::class);
 
-        // Ambil pegawai aktif di departemen ini
-        $pegawais = Pegawai::where('status_pegawai', 'aktif')
-            ->where('id_departemen', $departemenId)
-            ->get();
+        // Ambil pegawai aktif — semua departemen, atau filter departemen tertentu
+        $query = Pegawai::where('status_pegawai', 'aktif');
+        if ($request->filled('departemen_id')) {
+            $query->where('id_departemen', $request->departemen_id);
+        }
+        $pegawais = $query->get();
 
         $countBerhasil = 0;
         $countExist    = 0;
@@ -111,7 +118,7 @@ class PenggajianController extends Controller
                 continue;
             }
 
-            // Hitung gaji
+            // Hitung gaji menggunakan salary service
             $result = $salaryService->calculateMonthlySalary($pegawai, $periodeRaw);
 
             if ($result['status'] === 'success') {
@@ -133,7 +140,11 @@ class PenggajianController extends Controller
             }
         }
 
-        $msg = "Penggajian {$periodeLabel}: {$countBerhasil} pegawai berhasil dihitung";
+        $dept = $request->filled('departemen_id')
+            ? \App\Models\Departemen::find($request->departemen_id)?->nama_departemen ?? 'Departemen'
+            : 'Semua Departemen';
+
+        $msg = "Penggajian {$periodeLabel} ({$dept}): {$countBerhasil} pegawai berhasil dihitung";
         if ($countExist > 0) $msg .= ", {$countExist} sudah ada";
         if ($countGagal > 0) $msg .= ", {$countGagal} gagal";
         $msg .= ". Transfer dijadwalkan: " . Carbon::parse($tanggalTransfer)->format('d/m/Y');

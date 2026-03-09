@@ -69,7 +69,10 @@ class PegawaiController extends Controller
             return redirect()->route('officers.pegawai.index')->with('error', 'Anda belum memiliki departemen.');
         }
 
-        $jabatan = Jabatan::all();
+        // Filter jabatan hanya yang sesuai departemen officer yang login
+        $jabatan = Jabatan::where('id_departemen', $officer->id_departemen)
+            ->orderBy('nama_jabatan')
+            ->get();
         $ptkpStatus = PtkpStatus::all();
 
         return view('officer.pegawai.create', compact('jabatan', 'ptkpStatus'));
@@ -135,7 +138,10 @@ class PegawaiController extends Controller
             return redirect()->route('officers.pegawai.index')->with('error', 'Anda tidak berhak mengedit pegawai di departemen lain.');
         }
 
-        $jabatan = Jabatan::all();
+        // Filter jabatan hanya yang sesuai departemen officer yang login
+        $jabatan = Jabatan::where('id_departemen', $officer->id_departemen)
+            ->orderBy('nama_jabatan')
+            ->get();
         $ptkpStatus = PtkpStatus::all();
 
         return view('officer.pegawai.edit', compact('pegawai', 'jabatan', 'ptkpStatus'));

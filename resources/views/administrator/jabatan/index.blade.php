@@ -11,7 +11,7 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="card-title">Daftar Jabatan</h4>
         <a href="{{ route('administrators.jabatan.create') }}" class="btn btn-primary btn-sm">
-          <i class="bi bi-plus"></i> Tambah
+          <i class="bi bi-plus"></i> Tambah Jabatan
         </a>
       </div>
       <div class="card-body">
@@ -20,23 +20,33 @@
             <table class="table table-hover">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Nama Jabatan</th>
+                  <th>Departemen</th>
                   <th>Min Gaji</th>
                   <th>Max Gaji</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                @foreach($jabatan as $item)
+                @foreach($jabatan as $i => $item)
                 <tr>
+                  <td>{{ $i + 1 }}</td>
                   <td>{{ $item->nama_jabatan ?? '-' }}</td>
+                  <td>
+                    @if($item->departemen)
+                      <span class="badge bg-primary">{{ $item->departemen->nama_departemen }}</span>
+                    @else
+                      <span class="badge bg-secondary">Belum diatur</span>
+                    @endif
+                  </td>
                   <td>Rp {{ number_format($item->min_gaji ?? 0, 0, ',', '.') }}</td>
                   <td>Rp {{ number_format($item->max_gaji ?? 0, 0, ',', '.') }}</td>
                   <td>
                     <a href="{{ route('administrators.jabatan.edit', $item->id_jabatan) }}" class="btn btn-sm btn-warning">
                       <i class="bi bi-pencil"></i>
                     </a>
-                    <button type="button" class="btn btn-sm btn-danger" 
+                    <button type="button" class="btn btn-sm btn-danger"
                       data-delete-action="{{ route('administrators.jabatan.destroy', $item->id_jabatan) }}"
                       data-delete-item="{{ $item->nama_jabatan }}"
                       data-delete-category="jabatan">
@@ -49,7 +59,7 @@
             </table>
           </div>
         @else
-          <p class="text-center text-muted">Belum ada data jabatan</p>
+          <p class="text-center text-muted py-3">Belum ada data jabatan</p>
         @endif
       </div>
     </div>

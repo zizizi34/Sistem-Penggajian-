@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Data Penggajian')
-@section('description', 'Kelola Data Penggajian Bulanan Departemen')
+@section('description', 'HR Officer — Kelola Penggajian Seluruh Pegawai Perusahaan')
 
 @section('content')
 <div class="row mb-3">
@@ -10,7 +10,10 @@
       <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
           <h4 class="card-title mb-0"><i class="bi bi-cash-coin me-2 text-primary"></i>Penggajian Bulanan</h4>
-          <small class="text-muted">HR Officer — Kelola penggajian departemen Anda</small>
+          <small class="text-muted">
+            <span class="badge bg-success me-1"><i class="bi bi-shield-check"></i> HR Access</span>
+            Kelola penggajian seluruh pegawai perusahaan
+          </small>
         </div>
         <div class="d-flex gap-2 align-items-center flex-wrap">
           {{-- Filter Periode --}}
@@ -53,21 +56,28 @@
           @php
             $totalBersih  = $penggajian->sum('gaji_bersih');
             $totalPending = $penggajian->where('status','pending')->count();
+            $totalPaid    = $penggajian->where('status','paid')->count();
           @endphp
           <div class="row mb-3 g-3">
-            <div class="col-md-4">
+            <div class="col-md-3">
               <div class="bg-success bg-opacity-10 rounded p-3 text-center border border-success border-opacity-25">
-                <div class="fw-bold text-success fs-5">Rp {{ number_format($totalBersih, 0, ',', '.') }}</div>
+                <div class="fw-bold text-success fs-6">Rp {{ number_format($totalBersih, 0, ',', '.') }}</div>
                 <small class="text-muted">Total Gaji Bersih</small>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
               <div class="bg-warning bg-opacity-10 rounded p-3 text-center border border-warning border-opacity-25">
                 <div class="fw-bold text-warning fs-5">{{ $totalPending }}</div>
                 <small class="text-muted">Pending Pembayaran</small>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+              <div class="bg-info bg-opacity-10 rounded p-3 text-center border border-info border-opacity-25">
+                <div class="fw-bold text-info fs-5">{{ $totalPaid }}</div>
+                <small class="text-muted">Sudah Dibayar</small>
+              </div>
+            </div>
+            <div class="col-md-3">
               <div class="bg-primary bg-opacity-10 rounded p-3 text-center border border-primary border-opacity-25">
                 <div class="fw-bold text-primary fs-5">{{ $penggajian->pluck('id_pegawai')->unique()->count() }}</div>
                 <small class="text-muted">Jumlah Pegawai</small>
@@ -80,6 +90,7 @@
               <thead class="table-light">
                 <tr>
                   <th>Nama Pegawai</th>
+                  <th>Departemen</th>
                   <th>Periode</th>
                   <th>Gaji Pokok</th>
                   <th>Tunjangan</th>
@@ -98,6 +109,13 @@
                   <td>
                     <div class="fw-semibold">{{ $item->pegawai->nama_pegawai ?? '-' }}</div>
                     <small class="text-muted">{{ $item->pegawai->jabatan->nama_jabatan ?? '' }}</small>
+                  </td>
+                  <td>
+                    @if($item->pegawai?->departemen)
+                      <span class="badge bg-primary">{{ $item->pegawai->departemen->nama_departemen }}</span>
+                    @else
+                      <span class="text-muted">-</span>
+                    @endif
                   </td>
                   <td><span class="badge bg-secondary">{{ $item->periode ?? '-' }}</span></td>
                   <td>Rp {{ number_format($item->gaji_pokok ?? 0, 0, ',', '.') }}</td>
@@ -136,7 +154,6 @@
           </div>
 
         @elseif($periodeFilter)
-          {{-- Filter aktif tapi data kosong --}}
           <div class="text-center py-5">
             <i class="bi bi-calendar-x text-muted" style="font-size:3rem"></i>
             <p class="text-muted mt-2 mb-1">Tidak ada data untuk periode <strong>{{ $periodeLabel }}</strong>.</p>
@@ -171,12 +188,25 @@
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <p class="text-muted mb-3">Pilih bulan untuk menghitung penggajian pegawai di departemen Anda. Gaji akan ditransfer di <strong>akhir bulan</strong> yang dipilih.</p>
+          <p class="text-muted mb-3">
+            Sebagai <strong>HR Officer</strong>, Anda dapat menghitung gaji untuk semua departemen
+            atau departemen tertentu saja.
+          </p>
           <div class="mb-3">
-            <label for="modalPeriode" class="form-label fw-semibold">Periode Penggajian</label>
+            <label for="modalPeriode" class="form-label fw-semibold">Periode Penggajian <span class="text-danger">*</span></label>
             <input type="month" id="modalPeriode" name="periode" class="form-control"
               value="{{ $periodeFilter ?? now()->format('Y-m') }}" required>
-            <div class="form-text">Contoh: pilih Maret 2026 → gaji dihitung 01–31 Maret, transfer 31 Maret 2026</div>
+            <div class="form-text">Transfer otomatis dijadwalkan di akhir bulan yang dipilih.</div>
+          </div>
+          <div class="mb-3">
+            <label for="modalDepartemen" class="form-label fw-semibold">Departemen</label>
+            <select id="modalDepartemen" name="departemen_id" class="form-select">
+              <option value="">-- Semua Departemen --</option>
+              @foreach($departemens as $dept)
+                <option value="{{ $dept->id_departemen }}">{{ $dept->nama_departemen }}</option>
+              @endforeach
+            </select>
+            <div class="form-text">Kosongkan untuk hitung gaji <strong>semua departemen</strong> sekaligus.</div>
           </div>
           <div class="alert alert-warning border-0 py-2">
             <i class="bi bi-info-circle me-1"></i>
