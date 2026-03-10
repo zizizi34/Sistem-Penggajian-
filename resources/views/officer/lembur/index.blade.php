@@ -44,6 +44,7 @@
                   <th>Durasi (Jam)</th>
                   <th>Keterangan</th>
                   <th>Status</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,6 +89,17 @@
                       <span class="badge bg-secondary">{{ $item->status ?? '-' }}</span>
                     @endif
                   </td>
+                  <td>
+                    @if($item->status === 'pending' && $item->jam_selesai)
+                      <form action="{{ route('officers.lembur.approve', $item->id_lembur) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('POST')
+                        <button type="button" class="btn btn-sm btn-success btn-approve-lembur">
+                          <i class="bi bi-check-lg"></i> Setujui
+                        </button>
+                      </form>
+                    @endif
+                  </td>
                 </tr>
                 @endforeach
               </tbody>
@@ -110,4 +122,36 @@
     </div>
   </div>
 </div>
+ @push('script')
+<script>
+    $(function() {
+        $('.btn-approve-lembur').click(function(e) {
+            e.preventDefault();
+            const form = $(this).closest('form');
+            
+            Swal.fire({
+                title: 'Setujui Lembur?',
+                text: "Data lembur ini akan divalidasi dan masuk ke perhitungan gaji.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Ya, Setujui!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>
+@endpush
 @endsection

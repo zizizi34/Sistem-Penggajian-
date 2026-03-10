@@ -61,9 +61,9 @@ class DashboardController extends Controller
         }
         
         // Logic for detecting automatic overtime
-        // Ambil pegawai yang sudah masuk tapi belum pulang
+        // Ambil pegawai yang sudah masuk tapi belum pulang (Hari ini dan H-1)
         $overtimeCandidatesQuery = \App\Models\Absensi::with(['pegawai.departemen'])
-            ->where('tanggal_absensi', $todayDate)
+            ->whereBetween('tanggal_absensi', [now()->subDays(1)->format('Y-m-d'), $todayDate])
             ->whereNotNull('jam_masuk')
             ->whereNull('jam_pulang');
             
@@ -81,33 +81,41 @@ class DashboardController extends Controller
             if (!$ab->pegawai || !$ab->pegawai->id_departemen) continue;
             $jadwal = $jadwals[$ab->pegawai->id_departemen] ?? null;
             if ($jadwal && $jadwal->jam_pulang) {
-                // Gabungkan tanggal hari ini + jam jadwal pulang agar perbandingan tepat
-                $jadwalPulang = Carbon::parse($todayDate . ' ' . $jadwal->jam_pulang);
-                // Jika jam sekarang sudah melewati jam jadwal pulang → dianggap lembur
-                if ($currentTime->greaterThan($jadwalPulang)) {
-                    $overtimeMenit = (int) $currentTime->diffInMinutes($jadwalPulang);
+                // Gunakan tanggal absensi terkait, bukan hari ini
+                $absensiDate = $ab->tanggal_absensi;
+                $jadwalPulang = Carbon::parse($absensiDate . ' ' . $jadwal->jam_pulang);
+                
+                // Cek waktu referensi: jika sudah beda hari dengan absensi, cap di 23:59 (akhir hari)
+                $refTime = $currentTime->copy();
+                if ($currentTime->format('Y-m-d') > $absensiDate) {
+                    $refTime = Carbon::parse($absensiDate . ' 23:59:59');
+                }
+
+                // Jika jam sekarang (atau batas akhir hari) sudah melewati jam jadwal pulang → dianggap lembur
+                if ($refTime->greaterThan($jadwalPulang)) {
+                    $overtimeMenit = (int) $refTime->diffInMinutes($jadwalPulang);
                     $ab->overtime_menit = $overtimeMenit;
                     $overtimeList[] = $ab;
 
-                    // Auto-create record lembur di database jika belum ada untuk hari ini
+                    // Auto-create record lembur di database jika belum ada untuk tanggal tersebut
                     $existingLembur = Lembur::where('id_pegawai', $ab->id_pegawai)
-                        ->whereDate('tanggal_lembur', $todayDate)
+                        ->whereDate('tanggal_lembur', $absensiDate)
                         ->first();
 
                     if (!$existingLembur) {
                         Lembur::create([
                             'id_pegawai'     => $ab->id_pegawai,
-                            'tanggal_lembur' => $todayDate,
+                            'tanggal_lembur' => $absensiDate,
                             'jam_mulai'      => $jadwal->jam_pulang, // Lembur mulai dari jam jadwal pulang
-                            'jam_selesai'    => null,                // Belum selesai (masih berjalan)
-                            'durasi'         => null,
+                            'jam_selesai'    => $refTime->format('H:i:s'), 
+                            'durasi'         => round($overtimeMenit / 60, 2),
                             'keterangan'     => 'Lembur otomatis terdeteksi - belum absen pulang',
                             'status'         => 'pending',
                         ]);
                     } else {
                         // Update jam selesai sementara jika masih pending
                         if ($existingLembur->status === 'pending') {
-                            $existingLembur->jam_selesai = $currentTime->format('H:i:s');
+                            $existingLembur->jam_selesai = $refTime->format('H:i:s');
                             $existingLembur->durasi      = round($overtimeMenit / 60, 2);
                             $existingLembur->save();
                         }

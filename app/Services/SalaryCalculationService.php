@@ -134,8 +134,17 @@ class SalaryCalculationService
         $standardOut = $jadwal ? $jadwal->jam_pulang : '17:00:00';
         $tolerance = $jadwal ? $jadwal->toleransi_terlambat : 0;
 
-        // Hitung total hari kerja berdasarkan jadwal (Senin-Jumat default)
-        $workingDays = $this->countWorkingDays($startDate, $endDate);
+        // Hitung total hari kerja berdasarkan jadwal yang diatur
+        $hariKerja = $jadwal ? $jadwal->hari : 'Senin-Jumat';
+        
+        // Mempertimbangkan tgl_masuk pegawai: jangan hitung alpha jika pegawai belum join
+        $joinDate = $pegawai->tgl_masuk ? Carbon::parse($pegawai->tgl_masuk) : $startDate;
+        $actualStart = $startDate->copy();
+        if ($joinDate->greaterThan($actualStart)) {
+            $actualStart = $joinDate;
+        }
+
+        $workingDays = $this->countWorkingDays($actualStart, $endDate, $hariKerja);
 
         // Ambil data absensi dari database
         $absences = Absensi::where('id_pegawai', $pegawai->id_pegawai)
@@ -415,14 +424,51 @@ class SalaryCalculationService
     /**
      * Hitung jumlah hari kerja (Senin-Jumat)
      */
-    private function countWorkingDays($startDate, $endDate)
+    private function countWorkingDays($startDate, $endDate, $hariKerja = 'Senin-Jumat')
     {
         $workingDays = 0;
         $period = CarbonPeriod::create($startDate, $endDate);
 
+        $workingDaysMap = [
+            'senin' => 1, 'selasa' => 2, 'rabu' => 3, 'kamis' => 4, 'jumat' => 5, 'sabtu' => 6, 'minggu' => 0
+        ];
+        
+        $allowedDays = [];
+        $hariStr = strtolower($hariKerja);
+
+        if (str_contains($hariStr, '-')) {
+            $parts = array_map('trim', explode('-', $hariStr));
+            if (count($parts) == 2 && isset($workingDaysMap[$parts[0]]) && isset($workingDaysMap[$parts[1]])) {
+                $start = $workingDaysMap[$parts[0]];
+                $end = $workingDaysMap[$parts[1]];
+                
+                $current = $start;
+                while(true) {
+                    $allowedDays[] = $current % 7;
+                    if ($current % 7 == $end % 7) break;
+                    $current++;
+                    if ($current > 100) break;
+                }
+            }
+        } elseif (str_contains($hariStr, ',')) {
+            $parts = array_map('trim', explode(',', $hariStr));
+            foreach($parts as $p) {
+                if (isset($workingDaysMap[trim($p)])) {
+                    $allowedDays[] = $workingDaysMap[trim($p)];
+                }
+            }
+        } else {
+            if (isset($workingDaysMap[trim($hariStr)])) {
+                $allowedDays[] = $workingDaysMap[trim($hariStr)];
+            }
+        }
+
+        if (empty($allowedDays)) {
+            $allowedDays = [1, 2, 3, 4, 5]; // Default Mon-Fri
+        }
+
         foreach ($period as $date) {
-            // 1 = Senin, 5 = Jumat
-            if ($date->dayOfWeek >= 1 && $date->dayOfWeek <= 5) {
+            if (in_array($date->dayOfWeek, $allowedDays)) {
                 $workingDays++;
             }
         }

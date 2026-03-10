@@ -27,10 +27,21 @@ class DashboardController extends Controller
                                   ->where('tanggal_absensi', $today)
                                   ->first();
 
+        $currentPeriod = now()->format('Y-m');
+
         return view('student.dashboard', [
-            'myPayrollCount' => Penggajian::where('id_pegawai', $student->id_pegawai ?? $student->id)->count(),
-            'myAttendanceCount' => Absensi::where('id_pegawai', $student->id_pegawai ?? $student->id)->count(),
-            'myPayrolls' => Penggajian::where('id_pegawai', $student->id_pegawai ?? $student->id)->take(5)->get(),
+            'myPayrollCount' => Penggajian::where('id_pegawai', $student->id_pegawai)
+                                        ->where('periode', '<=', $currentPeriod)
+                                        ->count(),
+            'myAttendanceCount' => Absensi::where('id_pegawai', $student->id_pegawai)
+                                        ->whereMonth('tanggal_absensi', now()->month)
+                                        ->whereYear('tanggal_absensi', now()->year)
+                                        ->count(),
+            'myPayrolls' => Penggajian::where('id_pegawai', $student->id_pegawai)
+                                    ->where('periode', '<=', $currentPeriod)
+                                    ->orderBy('periode', 'desc')
+                                    ->take(5)
+                                    ->get(),
             'todayAttendance' => $todayAttendance,
         ]);
     }

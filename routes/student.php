@@ -34,7 +34,7 @@ Route::middleware(['auth:student'])->name('students.')->prefix('student')->group
     });
 
     // Payroll / Salary Slip - Personal only
-    Route::resource('payroll', PayrollController::class)->only('index');
+    Route::resource('payroll', PayrollController::class)->only(['index', 'show']);
 
     // Profile Settings
     Route::controller(ProfileSettingController::class)->group(function () {

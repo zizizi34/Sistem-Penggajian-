@@ -177,9 +177,9 @@ class LemburController extends BaseController
 
             $this->logActivity('update', 'Lembur', $id, 'Approve lembur', $oldValues, $lembur->toArray());
 
-            return $this->responseSuccess($lembur, 'Lembur berhasil di-approve');
+            return back()->with('success', 'Lembur berhasil di-approve');
         } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 500);
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -203,9 +203,9 @@ class LemburController extends BaseController
             $this->logActivity('delete', 'Lembur', $id, 'Delete lembur', $lembur->toArray());
             $lembur->delete();
 
-            return $this->responseSuccess(null, 'Lembur berhasil dihapus');
+            return back()->with('success', 'Lembur berhasil dihapus');
         } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 500);
+            return back()->with('error', $e->getMessage());
         }
     }
 }

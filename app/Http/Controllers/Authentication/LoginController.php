@@ -36,11 +36,6 @@ class LoginController extends Controller
             if ($user->role && $user->role->nama_role === 'Pegawai') {
                 auth('student')->login($user, false);
                 $request->session()->regenerate();
-                
-                // Debug if session is set
-                \Illuminate\Support\Facades\Log::info('Login Session Check: ' . (auth('student')->check() ? 'TRUE' : 'FALSE') . ' UserID: ' . auth('student')->id());
-
-                \Illuminate\Support\Facades\Log::info('Redirecting to students.dashboard');
                 return redirect()->route('students.dashboard');
             }
 

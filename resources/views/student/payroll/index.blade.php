@@ -57,7 +57,8 @@
                                     <th>Pajak (PPH21)</th>
                                     <th class="text-success">Gaji Bersih</th>
                                     <th>Tgl Transfer</th>
-                                    <th>Status</th>
+                                     <th>Status</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -78,7 +79,7 @@
                                             <small class="text-muted">-</small>
                                           @endif
                                         </td>
-                                        <td>
+                                         <td>
                                             @if($payroll->status == 'paid')
                                                 <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Dibayar</span>
                                             @elseif($payroll->status == 'pending')
@@ -87,7 +88,12 @@
                                                 <span class="badge bg-secondary">{{ ucfirst($payroll->status) }}</span>
                                             @endif
                                         </td>
-                                    </tr>
+                                        <td>
+                                            <a href="{{ route('students.payroll.show', $payroll->id_penggajian) }}" class="btn btn-sm btn-primary px-3 shadow-sm rounded-pill">
+                                                <i class="bi bi-file-earmark-text me-1"></i> Invoice
+                                            </a>
+                                        </td>
+                                </tr>
                                 @endforeach
                             </tbody>
                         </table>

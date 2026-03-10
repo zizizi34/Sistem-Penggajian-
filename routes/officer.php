@@ -69,6 +69,8 @@ Route::middleware(['auth:officer', 'department.scope'])->name('officers.')->pref
         Route::get('/penggajian', 'index')->name('penggajian.index');
         Route::get('/penggajian/{id}', 'show')->name('penggajian.show');
         Route::post('/penggajian/calculate', 'calculate')->name('penggajian.calculate');
+        Route::post('/penggajian/{id}/pay', 'updateStatus')->name('penggajian.pay');
+        Route::post('/penggajian/bulk-pay', 'bulkPay')->name('penggajian.bulk-pay');
     });
 
     // Profile Settings
