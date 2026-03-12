@@ -12,7 +12,7 @@
             <div class="col-12">
               <div class="mb-3">
                 <label for="commodity_id" class="form-label">Komoditas</label>
-                <select class="form-select @error('commodity_id', 'store') is-invalid @enderror" name="commodity_id"
+                <select class="form-select @error('commodity_id') is-invalid @enderror" name="commodity_id"
                   id="commodity_id" required>
                   <option value="" selected>Pilih..</option>
                   @foreach ($availableCommodities as $commodity)
@@ -29,7 +29,7 @@
                   <option value="{{ $commodity->id }}" disabled>{{ $commodity->name }} - Sedang dipinjam</option>
                   @endforeach
                 </select>
-                @error('commodity_id', 'store')
+                @error('commodity_id')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -40,10 +40,10 @@
                 <label for="time_start" class="form-label">Jam Pinjam</label>
                 <div class="input-group mb-3">
                   <span class="d-block input-group-text"><i class="bi bi-clock-fill"></i></span>
-                  <input type="time" class="form-control @error('time_start', 'store') is-invalid @enderror"
+                  <input type="time" class="form-control @error('time_start') is-invalid @enderror"
                     name="time_start" @if($errors->hasBag('store'))
                   value="{{ old('time_start') }}" @endif id="time_start" required>
-                  @error('time_start', 'store')
+                  @error('time_start')
                   <div class="d-block invalid-feedback">
                     {{ $message }}
                   </div>

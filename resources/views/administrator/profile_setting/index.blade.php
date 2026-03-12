@@ -19,9 +19,9 @@
             <div class="col-12">
               <div class="mb-3">
                 <label for="name" class="form-label">Nama Lengkap:</label>
-                <input type="text" class="form-control @error('name', 'update') is-invalid @enderror" name="name"
+                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name"
                   value="{{ $myInformation->name }}" placeholder="Masukkan nama.." autofocus>
-                @error('name', 'update')
+                @error('name')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -32,9 +32,9 @@
               <label for="email" class="form-label">Alamat Email:</label>
               <div class="input-group mb-3">
                 <span class="d-block input-group-text"><i class="bi bi-envelope-at-fill"></i></span>
-                <input type="email" class="form-control @error('email', 'update') is-invalid @enderror" name="email"
+                <input type="email" class="form-control @error('email') is-invalid @enderror" name="email"
                   value="{{ $myInformation->email }}" placeholder="Masukkan alamat email..">
-                @error('email', 'update')
+                @error('email')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -45,10 +45,10 @@
               <label for="phone_number" class="form-label">Nomor Handphone:</label>
               <div class="input-group mb-3">
                 <span class="d-block input-group-text"><i class="bi bi-telephone-fill"></i></span>
-                <input type="number" class="form-control @error('phone_number', 'update') is-invalid @enderror"
+                <input type="number" class="form-control @error('phone_number') is-invalid @enderror"
                   name="phone_number" value="{{ $myInformation->phone_number }}"
                   placeholder="Masukkan nomor handphone..">
-                @error('phone_number', 'update')
+                @error('phone_number')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -58,10 +58,10 @@
             <div class="col-12">
               <div class="mb-3">
                 <label for="password" class="form-label">Password:</label>
-                <input type="password" class="form-control @error('password', 'update') is-invalid @enderror"
+                <input type="password" class="form-control @error('password') is-invalid @enderror"
                   name="password" placeholder="Masukkan password..">
                 <small class="text-muted">Kosongkan kolom password jika tidak ingin diubah</small>
-                @error('password', 'update')
+                @error('password')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -72,9 +72,9 @@
               <div class="mb-3">
                 <label for="password_confirmation" class="form-label">Konfirmasi Password:</label>
                 <input type="password_confirmation"
-                  class="form-control @error('password_confirmation', 'update') is-invalid @enderror"
+                  class="form-control @error('password_confirmation') is-invalid @enderror"
                   name="password_confirmation" placeholder="Ulangi password..">
-                @error('password_confirmation', 'update')
+                @error('password_confirmation')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>

@@ -100,8 +100,7 @@ Route::middleware(['auth:administrator', 'role.access'])->name('administrators.'
 
     // ==================== SYSTEM MANAGEMENT ====================
     
-    // User Management
-    Route::resource('users', UserController::class)->except(['create', 'show', 'edit']);
+    // Administrator Management is removed (not used in this system)
 
     // Officer Management
     Route::resource('officers', OfficerController::class)->except(['create', 'show', 'edit']);

@@ -63,17 +63,17 @@ class ITCompanyDemoSeeder extends Seeder
         // 4. Jabatan
         $jabatans = [
             // Software Dev
-            ['nama_jabatan' => 'Tech Lead', 'id_departemen' => $deptIds['Software Development'], 'min_gaji' => 15000000, 'max_gaji' => 25000000],
-            ['nama_jabatan' => 'Senior Developer', 'id_departemen' => $deptIds['Software Development'], 'min_gaji' => 10000000, 'max_gaji' => 18000000],
-            ['nama_jabatan' => 'Junior Developer', 'id_departemen' => $deptIds['Software Development'], 'min_gaji' => 5000000, 'max_gaji' => 8000000],
+            ['nama_jabatan' => 'Tech Lead', 'id_departemen' => $deptIds['Software Development'], 'min_gaji' => 9000000, 'max_gaji' => 13000000],
+            ['nama_jabatan' => 'Senior Developer', 'id_departemen' => $deptIds['Software Development'], 'min_gaji' => 6000000, 'max_gaji' => 9000000],
+            ['nama_jabatan' => 'Junior Developer', 'id_departemen' => $deptIds['Software Development'], 'min_gaji' => 4000000, 'max_gaji' => 6000000],
             // QA
-            ['nama_jabatan' => 'QA Lead', 'id_departemen' => $deptIds['Quality Assurance'], 'min_gaji' => 12000000, 'max_gaji' => 20000000],
-            ['nama_jabatan' => 'QA Engineer', 'id_departemen' => $deptIds['Quality Assurance'], 'min_gaji' => 6000000, 'max_gaji' => 10000000],
+            ['nama_jabatan' => 'QA Lead', 'id_departemen' => $deptIds['Quality Assurance'], 'min_gaji' => 9000000, 'max_gaji' => 13000000],
+            ['nama_jabatan' => 'QA Engineer', 'id_departemen' => $deptIds['Quality Assurance'], 'min_gaji' => 4000000, 'max_gaji' => 6000000],
             // Infrastructure
-            ['nama_jabatan' => 'DevOps Engineer', 'id_departemen' => $deptIds['Infrastructure & Security'], 'min_gaji' => 12000000, 'max_gaji' => 22000000],
-            ['nama_jabatan' => 'System Administrator', 'id_departemen' => $deptIds['Infrastructure & Security'], 'min_gaji' => 8000000, 'max_gaji' => 14000000],
+            ['nama_jabatan' => 'DevOps Engineer', 'id_departemen' => $deptIds['Infrastructure & Security'], 'min_gaji' => 4000000, 'max_gaji' => 6000000],
+            ['nama_jabatan' => 'System Administrator', 'id_departemen' => $deptIds['Infrastructure & Security'], 'min_gaji' => 4000000, 'max_gaji' => 6000000],
             // PM
-            ['nama_jabatan' => 'Project Manager', 'id_departemen' => $deptIds['Project Management'], 'min_gaji' => 15000000, 'max_gaji' => 25000000],
+            ['nama_jabatan' => 'Project Manager', 'id_departemen' => $deptIds['Project Management'], 'min_gaji' => 13000000, 'max_gaji' => 18000000],
         ];
         $jabatanIds = [];
         foreach ($jabatans as $jab) {

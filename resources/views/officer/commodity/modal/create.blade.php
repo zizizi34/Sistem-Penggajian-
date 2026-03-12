@@ -13,10 +13,10 @@
               <div class="mb-3">
                 <label for="name" class="form-label">Nama Komoditas</label>
                 <input type="name" name="name" id="name"
-                  class="form-control @error('name', 'store') is-invalid @enderror" @if($errors->hasBag('store'))
+                  class="form-control @error('name') is-invalid @enderror" @if($errors->hasBag('store'))
                 value="{{ old('name') }}" @endif placeholder="Masukkan nama komoditas.."
                 required>
-                @error('name', 'store')
+                @error('name')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>

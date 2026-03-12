@@ -30,13 +30,13 @@
             type="email" 
             id="email"
             name="email" 
-            class="form-control @error('email', 'authentication') is-invalid @enderror" 
+            class="form-control @error('email') is-invalid @enderror" 
             placeholder="Masukkan email Anda"
             value="{{ old('email') }}" 
             autofocus 
             required 
           />
-          @error('email', 'authentication')
+          @error('email')
           <div class="invalid-feedback">
             {{ $message }}
           </div>
@@ -51,7 +51,7 @@
               type="password" 
               id="password"
               name="password" 
-              class="form-control @error('password', 'authentication') is-invalid @enderror" 
+              class="form-control @error('password') is-invalid @enderror" 
               placeholder="Masukkan password Anda"
               required 
             />
@@ -64,7 +64,7 @@
               <i class="bi bi-eye" id="password-icon"></i>
             </button>
           </div>
-          @error('password', 'authentication')
+          @error('password')
           <div class="invalid-feedback" style="display: block;">
             {{ $message }}
           </div>

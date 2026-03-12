@@ -45,9 +45,9 @@ class AttendanceController extends BaseController
                 ->whereDate('tanggal_absensi', $today)
                 ->first();
 
-            // Filter Tanggal
-            $dateFrom = $request->input('tanggal_dari', \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d'));
-            $dateTo   = $request->input('tanggal_sampai', \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d'));
+            // Filter Tanggal - Pastikan ada default jika input kosong
+            $dateFrom = $request->filled('tanggal_dari') ? $request->tanggal_dari : \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
+            $dateTo   = $request->filled('tanggal_sampai') ? $request->tanggal_sampai : \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d');
 
             // Ambil bulan dan tahun dari range (untuk default label)
             $currentMonth = \Carbon\Carbon::parse($dateTo)->month;
@@ -55,82 +55,18 @@ class AttendanceController extends BaseController
 
             $totalHadir  = Absensi::where('id_pegawai', $pegawaiId)
                 ->whereBetween('tanggal_absensi', [$dateFrom, $dateTo])
-                ->whereIn('status', ['hadir', 'terlambat'])->count();
+                ->whereIn('status', ['hadir', 'Hadir', 'terlambat', 'Terlambat', 'Lembur', 'lembur', 'Pulang Cepat', 'pulang cepat', 'Lupa Absen Pulang', 'lupa absen pulang', 'Lembur tetapi Lupa Absen Pulang'])->count();
 
             $totalIzin   = Absensi::where('id_pegawai', $pegawaiId)
                 ->whereBetween('tanggal_absensi', [$dateFrom, $dateTo])
-                ->where('status', 'izin')->count();
+                ->whereIn('status', ['izin', 'Izin', 'sakit', 'Sakit'])->count();
 
-            // Hitung Total Tidak Masuk berdasarkan Jadwal Kerja bulan ini (sampai hari ini)
-            $totalTidakMasuk = 0;
+            // Hitung Total Tidak Masuk berdasarkan data riwayat di database
+            $totalTidakMasuk = Absensi::where('id_pegawai', $pegawaiId)
+                ->whereBetween('tanggal_absensi', [$dateFrom, $dateTo])
+                ->whereIn('status', ['alpha', 'Alpha'])->count();
+
             $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
-            
-            if ($jadwal) {
-                $hariKerja = strtolower($jadwal->hari);
-                $workingDaysMap = [
-                    'senin' => 1, 'selasa' => 2, 'rabu' => 3, 'kamis' => 4, 'jumat' => 5, 'sabtu' => 6, 'minggu' => 0
-                ];
-                $allowedDays = [];
-                if (str_contains($hariKerja, '-')) {
-                    $parts = array_map('trim', explode('-', $hariKerja));
-                    if (count($parts) == 2 && isset($workingDaysMap[$parts[0]]) && isset($workingDaysMap[$parts[1]])) {
-                        $start = $workingDaysMap[$parts[0]];
-                        $end = $workingDaysMap[$parts[1]];
-                        
-                        // Handle range melintasi minggu (misal: Sabtu-Selasa)
-                        $current = $start;
-                        while(true) {
-                            $allowedDays[] = $current % 7;
-                            if ($current % 7 == $end % 7) break;
-                            $current++;
-                            if ($current > 100) break; // Safety break
-                        }
-                    }
-                } elseif (str_contains($hariKerja, ',')) {
-                    $parts = array_map('trim', explode(',', $hariKerja));
-                    foreach($parts as $p) {
-                        if (isset($workingDaysMap[$p])) {
-                            $allowedDays[] = $workingDaysMap[$p];
-                        }
-                    }
-                } else {
-                    // Cek satu hari saja
-                    $dayTrim = trim($hariKerja);
-                    if (isset($workingDaysMap[$dayTrim])) {
-                        $allowedDays[] = $workingDaysMap[$dayTrim];
-                    }
-                }
-                if (empty($allowedDays)) {
-                    $allowedDays = [1, 2, 3, 4, 5]; // Default Senin-Jumat
-                }
-                
-                $totalWorkingDays = 0;
-                
-                // Tentukan tanggal mulai hitung (start of range vs join date)
-                // Gunakan tgl_masuk dari data pegawai, jika tidak ada baru fallback ke created_at
-                $joinDate = $user->pegawai->tgl_masuk ? \Carbon\Carbon::parse($user->pegawai->tgl_masuk) : $user->created_at;
-                
-                $calcStart = \Carbon\Carbon::parse($dateFrom);
-                if ($joinDate && $joinDate->greaterThan($calcStart)) {
-                    $calcStart = $joinDate;
-                }
-
-                // Tentukan tanggal akhir hitung (end of range vs today)
-                $calcEnd = \Carbon\Carbon::parse($dateTo);
-                if ($calcEnd->isFuture()) {
-                    $calcEnd = \Carbon\Carbon::now();
-                }
-
-                // Hitung jumlah hari kerja dalam range yang ditentukan
-                // HANYA hitung hari yang masuk dalam jadwal kerja departemen
-                for ($d = $calcStart->copy(); $d->lte($calcEnd); $d->addDay()) {
-                    if (in_array($d->dayOfWeek, $allowedDays)) {
-                        $totalWorkingDays++;
-                    }
-                }
-                
-                $totalTidakMasuk = max(0, $totalWorkingDays - ($totalHadir + $totalIzin));
-            }
 
             // Query history dengan filter
             $query = Absensi::where('id_pegawai', $pegawaiId);
@@ -144,10 +80,65 @@ class AttendanceController extends BaseController
             }
 
             if ($request->filled('status') && $request->status !== 'semua') {
-                $query->where('status', $request->status);
+                if ($request->status === 'hadir') {
+                    $query->whereIn('status', ['hadir', 'Hadir', 'terlambat', 'Terlambat', 'lembur', 'Lembur', 'pulang cepat', 'Pulang Cepat', 'lupa absen pulang', 'Lupa Absen Pulang', 'Lembur tetapi Lupa Absen Pulang']);
+                } elseif ($request->status === 'tidak_hadir') {
+                    $query->whereIn('status', ['alpha', 'Alpha', 'izin', 'Izin', 'sakit', 'Sakit', 'tidak masuk']);
+                } else {
+                    $query->where('status', $request->status);
+                }
             }
 
             $history = $query->orderBy('tanggal_absensi', 'desc')->paginate(10)->withQueryString();
+
+            // ============= LOGIC BATAS ABSENSI HARI INI =============
+            $isLembur = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+                ->whereDate('tanggal_lembur', $today)
+                ->exists();
+            
+            $batasAbsensi = $isLembur ? '21:00:00' : ($jadwal->jam_pulang ?? '17:00:00');
+            $isClosed = now()->format('H:i:s') > $batasAbsensi;
+
+            // Rule 3: Jika sudah melewati batas dan belum absen pulang, auto-close sekarang
+            if ($attendance && !$attendance->jam_pulang && $isClosed && in_array($attendance->status, ['hadir', 'terlambat'])) {
+                $statusAbsensi = $isLembur ? 'Lembur tetapi Lupa Absen Pulang' : 'Lupa Absen Pulang';
+                $jamPulang = $batasAbsensi;
+                $jadwalPulang = $jadwal->jam_pulang ?? '17:00:00';
+                
+                $attendance->update([
+                    'jam_pulang' => $jamPulang,
+                    'status' => $statusAbsensi,
+                    'keterangan' => ($attendance->keterangan ? $attendance->keterangan . '; ' : '') . '[Sistem] Auto-close (Melewati Batas Absensi)'
+                ]);
+                
+                if ($isLembur) {
+                    $lemburRecord = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+                        ->whereDate('tanggal_lembur', $today)
+                        ->first();
+                    if ($lemburRecord) {
+                        $startLembur = \Carbon\Carbon::parse($today . ' ' . $jadwalPulang);
+                        $endLembur = \Carbon\Carbon::parse($today . ' ' . $jamPulang);
+                        $durasiLembur = round($startLembur->diffInMinutes($endLembur) / 60, 2);
+                        
+                        $lemburRecord->update([
+                            'jam_mulai' => $jadwalPulang,
+                            'jam_selesai' => $jamPulang,
+                            'durasi' => $durasiLembur,
+                            'status' => 'pending'
+                        ]);
+                    }
+                }
+            }
+            // ========================================================
+
+            // Penugasan lembur hari ini (Hanya jika belum absen pulang)
+            $overtimeNotification = null;
+            if (!$attendance || !$attendance->jam_pulang) {
+                $overtimeNotification = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+                    ->whereDate('tanggal_lembur', $today)
+                    ->where('status', 'pending')
+                    ->first();
+            }
 
             // Log
             $this->logActivity('read', 'Absensi', null, 'View personal attendance');
@@ -157,7 +148,10 @@ class AttendanceController extends BaseController
                 'history',
                 'totalHadir',
                 'totalIzin',
-                'totalTidakMasuk'
+                'totalTidakMasuk',
+                'overtimeNotification',
+                'isClosed',
+                'jadwal'
             ));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -187,6 +181,29 @@ class AttendanceController extends BaseController
             $today = now()->format('Y-m-d');
             $time = now()->format('H:i:s');
 
+            // 1. CEK BATAS WAKTU ABSENSI (Rule 4 & 5)
+            $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
+            $jadwalPulang = $jadwal->jam_pulang ?? '17:00:00';
+            
+            $hasLembur = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+                ->whereDate('tanggal_lembur', $today)
+                ->exists();
+                
+            $batasAbsensi = $hasLembur ? '21:00:00' : $jadwalPulang;
+
+            // Jika sudah absen masuk & pulang hari ini, tidak boleh absen lagi
+            $attendance = Absensi::where('id_pegawai', $pegawaiId)
+                ->whereDate('tanggal_absensi', $today)
+                ->first();
+
+            if ($attendance && $attendance->jam_masuk && $attendance->jam_pulang) {
+                return back()->with('info', 'Anda sudah menyelesaikan absensi hari ini.');
+            }
+
+            if ($time > $batasAbsensi && !$hasLembur) {
+                return back()->with('error', 'Absensi hari ini sudah ditutup. Silakan melakukan absensi kembali pada hari kerja berikutnya.');
+            }
+
             // Store foto
             $photoPath = $request->file('foto')->store('attendance_photos/' . date('Y/m/d'), 'public');
 
@@ -198,23 +215,41 @@ class AttendanceController extends BaseController
                     ->get();
 
                 foreach ($unclosedAttendance as $old) {
-                    // Cari apakah ada record lembur otomatis (pending) untuk hari tersebut
+                    // Ambil jadwal kerja
+                    $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
+                    $jadwalPulang = $jadwal->jam_pulang ?? '17:00:00';
+
+                    // Rule 3 & 4: Cek apakah ada record lembur (notifikasi dari petugas)
                     $lembur = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
                         ->whereDate('tanggal_lembur', $old->tanggal_absensi)
-                        ->where('status', 'pending')
                         ->first();
 
-                    $endTime = null;
-                    if ($lembur && $lembur->jam_selesai) {
-                        $endTime = $lembur->jam_selesai;
+                    if ($lembur) {
+                        // Rule 4: Ada Notifikasi Lembur tapi Lupa Absen Pulang
+                        $endTime = '21:00:00';
+                        $statusAbsensi = 'Lembur tetapi Lupa Absen Pulang';
+                        
+                        // Hitung lembur: 21:00 - jadwal_pulang
+                        $startLembur = \Carbon\Carbon::parse($old->tanggal_absensi . ' ' . $jadwalPulang);
+                        $endLembur = \Carbon\Carbon::parse($old->tanggal_absensi . ' ' . $endTime);
+                        $durasiLembur = round($startLembur->diffInMinutes($endLembur) / 60, 2);
+
+                        $lembur->update([
+                            'jam_mulai'   => $jadwalPulang,
+                            'jam_selesai' => $endTime,
+                            'durasi'      => $durasiLembur,
+                            'status'      => 'pending',
+                            'keterangan'  => ($lembur->keterangan ? $lembur->keterangan . '; ' : '') . '[Sistem] Auto-close (Lupa Absen)'
+                        ]);
                     } else {
-                        // Jika tidak ada deteksi lembur, gunakan jam pulang jadwal sebagai fallback
-                        $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
-                        $endTime = $jadwal->jam_pulang ?? '17:00:00';
+                        // Rule 2: Tidak ada Notifikasi Lembur & Lupa Absen Pulang
+                        $endTime = $jadwalPulang;
+                        $statusAbsensi = 'Lupa Absen Pulang';
                     }
 
                     $old->update([
                         'jam_pulang' => $endTime,
+                        'status'     => $statusAbsensi,
                         'keterangan' => ($old->keterangan ? $old->keterangan . '; ' : '') . '[Sistem] Auto-close saat absen masuk baru'
                     ]);
                 }
@@ -265,28 +300,56 @@ class AttendanceController extends BaseController
                 // Save old values for logging
                 $oldValues = $attendance->toArray();
 
+                // Rule 5: Cek jika ada notifikasi lembur
+                $lembur = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+                    ->whereDate('tanggal_lembur', $today)
+                    ->first();
+
+                // Logic Status (Lembur vs Pulang Cepat vs Hadir)
+                $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
+                $jadwalPulang = $jadwal->jam_pulang ?? '17:00:00';
+                $statusAbsensi = $attendance->status;
+
+                if ($lembur) {
+                    $startLembur = \Carbon\Carbon::parse($today . ' ' . $jadwalPulang);
+                    $endLembur = \Carbon\Carbon::parse($today . ' ' . $time);
+                    
+                    if ($endLembur->greaterThan($startLembur)) {
+                        // Mereka melakukan lembur
+                        $limitLembur = \Carbon\Carbon::parse($today . ' 21:00:00');
+                        if ($endLembur->greaterThan($limitLembur)) {
+                            $endLembur = $limitLembur;
+                        }
+                        $durasiLembur = round($startLembur->diffInMinutes($endLembur) / 60, 2);
+                        
+                        $lembur->update([
+                            'jam_mulai'   => $jadwalPulang,
+                            'jam_selesai' => $endLembur->format('H:i:s'),
+                            'durasi'      => $durasiLembur,
+                            'status'      => 'pending'
+                        ]);
+                        $statusAbsensi = 'Lembur';
+                    } else {
+                        // Mereka pulang sebelum jadwal pulang normal padahal ada jatah lembur
+                        // Maka batalkan lembur & status menjadi Pulang Cepat
+                        $lembur->update(['status' => 'rejected', 'keterangan' => '[Sistem] Pegawai pulang sebelum jadwal lembur dimulai']);
+                        if ($time < $jadwalPulang) {
+                            $statusAbsensi = 'Pulang Cepat';
+                        }
+                    }
+                } else {
+                    // Tidak ada lembur, cek jika pulang cepat
+                    if ($time < $jadwalPulang) {
+                        $statusAbsensi = 'Pulang Cepat';
+                    }
+                }
+
                 // Update
                 $attendance->update([
                     'jam_pulang' => $time,
                     'foto_pulang' => $photoPath,
+                    'status' => $statusAbsensi,
                 ]);
-
-                // Finalisasi record lembur jika ada lembur otomatis yang masih pending
-                $lemburOtomatis = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
-                    ->whereDate('tanggal_lembur', $today)
-                    ->where('status', 'pending')
-                    ->whereNotNull('jam_mulai')
-                    ->first();
-
-                if ($lemburOtomatis) {
-                    $jamMulai   = \Carbon\Carbon::parse($today . ' ' . $lemburOtomatis->jam_mulai);
-                    $jamSelesai = \Carbon\Carbon::parse($today . ' ' . $time);
-                    $durasiJam  = round($jamMulai->diffInMinutes($jamSelesai) / 60, 2);
-
-                    $lemburOtomatis->jam_selesai = $time;
-                    $lemburOtomatis->durasi      = $durasiJam;
-                    $lemburOtomatis->save();
-                }
 
                 // Log
                 $this->logActivity('update', 'Absensi', $attendance->id_absensi, 'Check-out attendance', $oldValues, $attendance->toArray());

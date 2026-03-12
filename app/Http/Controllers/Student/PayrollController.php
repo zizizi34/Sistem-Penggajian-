@@ -61,41 +61,21 @@ class PayrollController extends Controller
         $calcEnd = $endDate->copy();
         if ($calcEnd->isFuture()) { $calcEnd = \Carbon\Carbon::now(); }
 
-        // Hitung Statistik Absensi untuk ditunjukkan di Slip Gaji
+        // Hitung Statistik Absensi untuk ditunjukkan di Slip Gaji (Berdasarkan Data Real di Database)
         $stats = [
             'hadir' => Absensi::where('id_pegawai', $user->id_pegawai)
                         ->whereBetween('tanggal_absensi', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-                        ->whereIn('status', ['hadir', 'terlambat'])->count(),
+                        ->whereIn('status', ['hadir', 'terlambat', 'lembur', 'pulang cepat', 'lupa absen pulang', 'lembur tetapi lupa absen pulang'])
+                        ->count(),
             'izin'  => Absensi::where('id_pegawai', $user->id_pegawai)
                         ->whereBetween('tanggal_absensi', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-                        ->whereIn('status', ['izin', 'sakit'])->count(),
+                        ->whereIn('status', ['izin', 'sakit'])
+                        ->count(),
+            'alpha' => Absensi::where('id_pegawai', $user->id_pegawai)
+                        ->whereBetween('tanggal_absensi', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                        ->where('status', 'alpha')
+                        ->count(),
         ];
-
-        // Hitung Alpha menggunakan logic yang sudah kita benahi
-        $jadwal = \App\Models\JadwalKerja::where('id_departemen', $penggajian->pegawai->id_departemen)->first();
-        $totalWorkingDays = 0;
-        if ($jadwal) {
-            $workingDaysMap = ['senin'=>1,'selasa'=>2,'rabu'=>3,'kamis'=>4,'jumat'=>5,'sabtu'=>6,'minggu'=>0];
-            $allowedDays = [];
-            $hariStr = strtolower($jadwal->hari);
-            if (str_contains($hariStr, '-')) {
-                $partsRange = array_map('trim', explode('-', $hariStr));
-                if(count($partsRange)==2 && isset($workingDaysMap[$partsRange[0]]) && isset($workingDaysMap[$partsRange[1]])) {
-                    $curr = $workingDaysMap[$partsRange[0]];
-                    while(true) { 
-                        $allowedDays[] = $curr % 7; 
-                        if($curr%7 == $workingDaysMap[$partsRange[1]]) break; 
-                        $curr++; 
-                        if($curr>100) break; 
-                    }
-                }
-            } else { $allowedDays = [1,2,3,4,5]; } // Fallback
-
-            for ($d = $calcStart->copy(); $d->lte($calcEnd); $d->addDay()) {
-                if (in_array($d->dayOfWeek, $allowedDays)) { $totalWorkingDays++; }
-            }
-        }
-        $stats['alpha'] = max(0, $totalWorkingDays - ($stats['hadir'] + $stats['izin']));
 
         return view('student.payroll.show', compact('penggajian', 'stats'));
     }

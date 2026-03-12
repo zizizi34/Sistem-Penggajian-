@@ -70,7 +70,7 @@
                 </div>
 
                 {{-- BUTTON BERI IZIN --}}
-                @if(!$attendanceToday || ($attendanceToday->status != 'approved' && $attendanceToday->status != 'izin'))
+                @if(!$attendanceToday || ($attendanceToday->status != 'approved' && $attendanceToday->status != 'izin' && !$attendanceToday->jam_masuk))
                 <div>
                     <button type="button" class="btn btn-info text-white shadow-sm px-4 fw-semibold" style="border-radius: 6px;" data-bs-toggle="modal" data-bs-target="#modalBeriIzin">
                         <i class="bi bi-pencil-fill me-1"></i> Beri Izin
@@ -110,7 +110,7 @@
 </div>
 
 {{-- MODAL BERI IZIN --}}
-@if(!$attendanceToday || ($attendanceToday->status != 'approved' && $attendanceToday->status != 'izin'))
+@if(!$attendanceToday || ($attendanceToday->status != 'approved' && $attendanceToday->status != 'izin' && !$attendanceToday->jam_masuk))
 <div class="modal fade" id="modalBeriIzin" tabindex="-1" aria-labelledby="modalBeriIzinLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow">

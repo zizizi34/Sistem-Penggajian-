@@ -34,7 +34,58 @@ class AbsensiController extends BaseController
             $officer = auth('officer')->user();
             $departemenId = $officer->id_departemen;
 
-            // Query absensi untuk departemen ini
+            $today = now()->format('Y-m-d');
+            $currentTime = now()->format('H:i:s');
+
+            // AUTO-CLOSE Logic for Today's unclosed records
+            $openAttendances = Absensi::whereHas('pegawai', function ($q) use ($departemenId) {
+                $q->where('id_departemen', $departemenId);
+            })->whereDate('tanggal_absensi', $today)
+              ->whereNull('jam_pulang')
+              ->whereIn('status', ['hadir', 'terlambat'])
+              ->get();
+
+            foreach ($openAttendances as $att) {
+                // Ambil jadwal kerja pegawai ini
+                $jadwal = \App\Models\JadwalKerja::where('id_departemen', $departemenId)->first();
+                $isLembur = \App\Models\Lembur::where('id_pegawai', $att->id_pegawai)
+                    ->whereDate('tanggal_lembur', $today)
+                    ->exists();
+                
+                $batasAbsensi = $isLembur ? '21:00:00' : ($jadwal->jam_pulang ?? '17:00:00');
+
+                if ($currentTime > $batasAbsensi) {
+                    $statusAbsensi = $isLembur ? 'Lembur tetapi Lupa Absen Pulang' : 'Lupa Absen Pulang';
+                    $jamPulang = $batasAbsensi;
+                    $jadwalPulang = $jadwal->jam_pulang ?? '17:00:00';
+                    
+                    $att->update([
+                        'jam_pulang' => $jamPulang,
+                        'status' => $statusAbsensi,
+                        'keterangan' => ($att->keterangan ? $att->keterangan . '; ' : '') . '[Sistem] Auto-close (Melewati Batas Absensi)'
+                    ]);
+                    
+                    if ($isLembur) {
+                        $lemburRecord = \App\Models\Lembur::where('id_pegawai', $att->id_pegawai)
+                            ->whereDate('tanggal_lembur', $today)
+                            ->first();
+                        if ($lemburRecord) {
+                            $startLembur = \Carbon\Carbon::parse($today . ' ' . $jadwalPulang);
+                            $endLembur = \Carbon\Carbon::parse($today . ' ' . $jamPulang);
+                            $durasiLembur = round($startLembur->diffInMinutes($endLembur) / 60, 2);
+                            
+                            $lemburRecord->update([
+                                'jam_mulai' => $jadwalPulang,
+                                'jam_selesai' => $jamPulang,
+                                'durasi' => $durasiLembur,
+                                'status' => 'pending'
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Re-define query for displaying results
             $query = Absensi::whereHas('pegawai', function ($q) use ($departemenId) {
                 $q->where('id_departemen', $departemenId);
             })->with(['pegawai.departemen']);
@@ -140,6 +191,11 @@ class AbsensiController extends BaseController
             // Prevent edit if approved
             if ($absensi->status === 'approved') {
                 return back()->with('error', 'Tidak bisa edit absensi yang sudah di-approve');
+            }
+
+            // Prevent izin if already clocked in
+            if ($request->status === 'izin' && !empty($absensi->jam_masuk)) {
+                return back()->with('error', 'Pegawai sudah masuk, tidak bisa diberikan izin.');
             }
 
             // Validate

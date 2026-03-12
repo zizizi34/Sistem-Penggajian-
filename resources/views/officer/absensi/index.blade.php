@@ -32,13 +32,18 @@
                   <td>{{ $item->jam_masuk ?? '-' }}</td>
                   <td>{{ $item->jam_pulang ?? '-' }}</td>
                   <td>
-                    <span class="badge bg-{{ $item->status == 'hadir' ? 'success' : ($item->status == 'izin' ? 'warning' : 'danger') }}">
+                    <span class="badge bg-{{ match(strtolower($item->status)) {
+                      'hadir' => 'success',
+                      'izin', 'sakit' => 'warning',
+                      'alpha' => 'danger',
+                      default => 'secondary'
+                    } }}">
                       {{ ucfirst($item->status ?? 'alpha') }}
                     </span>
                   </td>
                   <td>
-                    <span class="badge bg-{{ \Carbon\Carbon::parse($item->approved_at)->isValid() ? 'primary' : 'secondary' }}">
-                      {{ \Carbon\Carbon::parse($item->approved_at)->isValid() ? 'Telah Disetujui' : 'Menunggu Persetujuan' }}
+                    <span class="badge bg-{{ $item->approved_at ? 'primary' : 'secondary' }}">
+                      {{ $item->approved_at ? 'Telah Disetujui' : 'Menunggu Persetujuan' }}
                     </span>
                   </td>
                 </tr>

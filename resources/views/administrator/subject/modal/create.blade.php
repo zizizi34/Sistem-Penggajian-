@@ -13,9 +13,8 @@
               <div class="mb-3">
                 <label for="code" class="form-label">Kode</label>
                 <input type="text" name="code" id="code"
-                  class="form-control @error('code', 'store') is-invalid @enderror" @if($errors->hasBag('store'))
-                value="{{ old('code') }}" @endif placeholder="Masukkan kode.." required>
-                @error('code', 'store')
+                  class="form-control @error('code') is-invalid @enderror" value="{{ old('code') }}" placeholder="Masukkan kode.." required>
+                @error('code')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -24,10 +23,9 @@
               <div class="mb-3">
                 <label for="name" class="form-label">Nama</label>
                 <input type="text" name="name" id="name"
-                  class="form-control  @error('name', 'store') is-invalid @enderror" @if($errors->hasBag('store'))
-                value="{{ old('name') }}" @endif placeholder="Masukkan nama.."
+                  class="form-control  @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="Masukkan nama.."
                 required>
-                @error('name', 'store')
+                @error('name')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>

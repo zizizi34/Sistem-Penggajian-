@@ -13,10 +13,10 @@
               <div class="mb-3">
                 <label for="identification_number" class="form-label">NIM Mahasiswa</label>
                 <input type="number" name="identification_number"
-                  class="form-control @error('identification_number', 'store') is-invalid @enderror"
+                  class="form-control @error('identification_number') is-invalid @enderror"
                   @if($errors->hasBag('store'))
                 value="{{ old('identification_number') }}" @endif placeholder="Masukkan nim mahasiswa.." required>
-                @error('identification_number', 'store')
+                @error('identification_number')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -26,10 +26,10 @@
             <div class="col-md-12 col-lg-8">
               <div class="mb-3">
                 <label for="name" class="form-label">Nama Mahasiswa</label>
-                <input type="text" name="name" class="form-control @error('name', 'store') is-invalid @enderror"
+                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                   @if($errors->hasBag('store'))
                 value="{{ old('name') }}" @endif placeholder="Masukkan nama mahasiswa.." required>
-                @error('name', 'store')
+                @error('name')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -42,7 +42,7 @@
             <div class="col-md-12 col-lg-6">
               <div class="mb-3">
                 <label for="program_study_id" class="form-label">Program Studi</label>
-                <select class="form-select @error('program_study_id', 'store') is-invalid @enderror"
+                <select class="form-select @error('program_study_id') is-invalid @enderror"
                   name="program_study_id" required>
                   <option value="0">Pilih..</option>
                   @foreach ($programStudies as $programStudy)
@@ -52,7 +52,7 @@
                     $programStudy->name }}</option>
                   @endforeach
                 </select>
-                @error('program_study_id', 'store')
+                @error('program_study_id')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -62,7 +62,7 @@
             <div class="col-md-12 col-lg-6">
               <div class="mb-3">
                 <label for="school_class_id" class="form-label">Kelas</label>
-                <select class="form-select @error('school_class_id', 'store') is-invalid @enderror"
+                <select class="form-select @error('school_class_id') is-invalid @enderror"
                   name="school_class_id" required>
                   <option value="0">Pilih..</option>
                   @foreach ($schoolClasses as $schoolClass)
@@ -71,7 +71,7 @@
                     $schoolClass->name }}</option>
                   @endforeach
                 </select>
-                @error('school_class_id', 'store')
+                @error('school_class_id')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -84,10 +84,10 @@
               <label for="email" class="form-label">Alamat Email</label>
               <div class="input-group mb-3">
                 <span class="d-block input-group-text"><i class="bi bi-envelope-at-fill"></i></span>
-                <input type="email" name="email" class="form-control @error('email', 'store') is-invalid @enderror"
+                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
                   @if($errors->hasBag('store'))
                 value="{{ old('email') }}" @endif placeholder="Masukkan alamat email.." required>
-                @error('email', 'store')
+                @error('email')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -99,11 +99,11 @@
               <div class="input-group mb-3">
                 <span class="d-block input-group-text"><i class="bi bi-telephone-fill"></i></span>
                 <input type="number" name="phone_number"
-                  class="form-control @error('phone_number', 'store') is-invalid @enderror"
+                  class="form-control @error('phone_number') is-invalid @enderror"
                   @if($errors->hasBag('store'))
                 value="{{ old('phone_number') }}" @endif
                 placeholder="Masukkan nomor handphone.." required>
-                @error('phone_number', 'store')
+                @error('phone_number')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -116,9 +116,9 @@
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" name="password"
-                  class="form-control @error('password', 'store') is-invalid @enderror"
+                  class="form-control @error('password') is-invalid @enderror"
                   placeholder="Masukkan password.." required>
-                @error('password', 'store')
+                @error('password')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>
@@ -129,9 +129,9 @@
               <div class="mb-3">
                 <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
                 <input type="password" name="password_confirmation"
-                  class="form-control @error('password_confirmation', 'store') is-invalid @enderror"
+                  class="form-control @error('password_confirmation') is-invalid @enderror"
                   placeholder="Masukkan password.." required>
-                @error('password_confirmation', 'store')
+                @error('password_confirmation')
                 <div class="d-block invalid-feedback">
                   {{ $message }}
                 </div>

@@ -60,70 +60,6 @@ class DashboardController extends Controller
             }
         }
         
-        // Logic for detecting automatic overtime
-        // Ambil pegawai yang sudah masuk tapi belum pulang (Hari ini dan H-1)
-        $overtimeCandidatesQuery = \App\Models\Absensi::with(['pegawai.departemen'])
-            ->whereBetween('tanggal_absensi', [now()->subDays(1)->format('Y-m-d'), $todayDate])
-            ->whereNotNull('jam_masuk')
-            ->whereNull('jam_pulang');
-            
-        if ($isRestricted) {
-            $overtimeCandidatesQuery->whereHas('pegawai', function($q) use ($idDept) {
-                $q->where('id_departemen', $idDept);
-            });
-        }
-        $overtimeCandidates = $overtimeCandidatesQuery->get();
-        
-        $overtimeList = [];
-        $currentTime = Carbon::now();
-        
-        foreach ($overtimeCandidates as $ab) {
-            if (!$ab->pegawai || !$ab->pegawai->id_departemen) continue;
-            $jadwal = $jadwals[$ab->pegawai->id_departemen] ?? null;
-            if ($jadwal && $jadwal->jam_pulang) {
-                // Gunakan tanggal absensi terkait, bukan hari ini
-                $absensiDate = $ab->tanggal_absensi;
-                $jadwalPulang = Carbon::parse($absensiDate . ' ' . $jadwal->jam_pulang);
-                
-                // Cek waktu referensi: jika sudah beda hari dengan absensi, cap di 23:59 (akhir hari)
-                $refTime = $currentTime->copy();
-                if ($currentTime->format('Y-m-d') > $absensiDate) {
-                    $refTime = Carbon::parse($absensiDate . ' 23:59:59');
-                }
-
-                // Jika jam sekarang (atau batas akhir hari) sudah melewati jam jadwal pulang → dianggap lembur
-                if ($refTime->greaterThan($jadwalPulang)) {
-                    $overtimeMenit = (int) $refTime->diffInMinutes($jadwalPulang);
-                    $ab->overtime_menit = $overtimeMenit;
-                    $overtimeList[] = $ab;
-
-                    // Auto-create record lembur di database jika belum ada untuk tanggal tersebut
-                    $existingLembur = Lembur::where('id_pegawai', $ab->id_pegawai)
-                        ->whereDate('tanggal_lembur', $absensiDate)
-                        ->first();
-
-                    if (!$existingLembur) {
-                        Lembur::create([
-                            'id_pegawai'     => $ab->id_pegawai,
-                            'tanggal_lembur' => $absensiDate,
-                            'jam_mulai'      => $jadwal->jam_pulang, // Lembur mulai dari jam jadwal pulang
-                            'jam_selesai'    => $refTime->format('H:i:s'), 
-                            'durasi'         => round($overtimeMenit / 60, 2),
-                            'keterangan'     => 'Lembur otomatis terdeteksi - belum absen pulang',
-                            'status'         => 'pending',
-                        ]);
-                    } else {
-                        // Update jam selesai sementara jika masih pending
-                        if ($existingLembur->status === 'pending') {
-                            $existingLembur->jam_selesai = $refTime->format('H:i:s');
-                            $existingLembur->durasi      = round($overtimeMenit / 60, 2);
-                            $existingLembur->save();
-                        }
-                    }
-                }
-            }
-        }
-        
         // Load lemburList SETELAH auto-create agar data terbaru langsung muncul di dashboard
         $lemburListQuery = \Illuminate\Support\Facades\DB::table('lembur')
             ->join('pegawai', 'lembur.id_pegawai', '=', 'pegawai.id_pegawai')
@@ -155,7 +91,7 @@ class DashboardController extends Controller
             'recentAbsensi' => $absensis->sortByDesc('jam_masuk')->take(5),
             'terlambatList' => collect($terlambatList)->sortByDesc('jam_masuk')->values(),
             'lemburList' => $lemburList,
-            'overtimeList' => collect($overtimeList)->sortByDesc('overtime_menit')->values(),
+            'overtimeList' => collect([]),
         ]);
     }
 }

@@ -41,9 +41,14 @@ class LemburController extends BaseController
 
             $lembur = $query->orderBy('tanggal_lembur', 'desc')->get();
 
+            // Ambil daftar pegawai di departemen ini untuk dropdown "Beri Lembur"
+            $employees = Pegawai::where('id_departemen', $departemenId)
+                ->orderBy('nama_pegawai')
+                ->get();
+
             $this->logActivity('read', 'Lembur', null, 'View departemen lembur list');
 
-            return view('officer.lembur.index', compact('lembur'));
+            return view('officer.lembur.index', compact('lembur', 'employees'));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -61,8 +66,8 @@ class LemburController extends BaseController
             $validated = $request->validate([
                 'id_pegawai' => 'required|exists:pegawai,id_pegawai',
                 'tanggal_lembur' => 'required|date',
-                'jam_mulai' => 'required|date_format:H:i',
-                'jam_selesai' => 'required|date_format:H:i',
+                'jam_mulai' => 'nullable|date_format:H:i',
+                'jam_selesai' => 'nullable|date_format:H:i',
                 'keterangan' => 'nullable|string|max:255',
             ]);
 
@@ -79,9 +84,10 @@ class LemburController extends BaseController
                 ->first();
 
             if ($existing) {
-                return $this->responseError('Lembur sudah ada untuk tanggal tersebut', 400);
+                return back()->with('error', 'Lembur sudah ada untuk tanggal tersebut');
             }
 
+            $validated['status'] = 'pending';
             $lembur = Lembur::create($validated);
 
             $this->logActivity('create', 'Lembur', $lembur->id_lembur, 
@@ -90,11 +96,21 @@ class LemburController extends BaseController
                 $lembur->toArray()
             );
 
-            return $this->responseSuccess($lembur, 'Lembur berhasil dibuat', 201);
+            if ($request->ajax()) {
+                return $this->responseSuccess($lembur, 'Lembur berhasil dibuat', 201);
+            }
+            
+            return back()->with('success', 'Berhasil memberikan jatah lembur kepada ' . $pegawai->nama_pegawai);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->responseError('Validasi gagal', 422, $e->errors());
+            if ($request->ajax()) {
+                return $this->responseError('Validasi gagal', 422, $e->errors());
+            }
+            return back()->withErrors($e->errors());
         } catch (\Exception $e) {
-            return $this->responseError($e->getMessage(), 500);
+            if ($request->ajax()) {
+                return $this->responseError($e->getMessage(), 500);
+            }
+            return back()->with('error', $e->getMessage());
         }
     }
 

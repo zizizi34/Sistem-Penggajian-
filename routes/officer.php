@@ -41,41 +41,44 @@ Route::middleware(['auth:officer', 'department.scope'])->name('officers.')->pref
 
     // Absensi - Full CRUD & Approve untuk departemen sendiri
     Route::controller(AbsensiController::class)->group(function () {
-        Route::get('/absensi', 'index')->name('absensi.index');
-        Route::post('/absensi', 'store')->name('absensi.store');
-        Route::get('/absensi/{id}', 'show')->name('absensi.show');
-        Route::put('/absensi/{id}', 'update')->name('absensi.update');
-        Route::post('/absensi/{id}/approve', 'approve')->name('absensi.approve');
-        Route::delete('/absensi/{id}', 'destroy')->name('absensi.destroy');
-        Route::get('/absensi-summary', 'summary')->name('absensi.summary');
-    });
+            Route::get('/absensi', 'index')->name('absensi.index');
+            Route::post('/absensi', 'store')->name('absensi.store');
+            Route::get('/absensi/{id}', 'show')->name('absensi.show');
+            Route::put('/absensi/{id}', 'update')->name('absensi.update');
+            Route::post('/absensi/{id}/approve', 'approve')->name('absensi.approve');
+            Route::delete('/absensi/{id}', 'destroy')->name('absensi.destroy');
+            Route::get('/absensi-summary', 'summary')->name('absensi.summary');
+        }
+        );
 
-    // Lembur - Full CRUD & Approve untuk departemen sendiri
-    Route::controller(LemburController::class)->group(function () {
-        Route::get('/lembur', 'index')->name('lembur.index');
-        Route::post('/lembur', 'store')->name('lembur.store');
-        Route::get('/lembur/{id}', 'show')->name('lembur.show');
-        Route::put('/lembur/{id}', 'update')->name('lembur.update');
-        Route::post('/lembur/{id}/approve', 'approve')->name('lembur.approve');
-        Route::delete('/lembur/{id}', 'destroy')->name('lembur.destroy');
-    });
+        // Lembur - Full CRUD & Approve untuk departemen sendiri
+        Route::controller(LemburController::class)->group(function () {
+            Route::get('/lembur', 'index')->name('lembur.index');
+            Route::post('/lembur', 'store')->name('lembur.store');
+            Route::get('/lembur/{id}', 'show')->name('lembur.show');
+            Route::put('/lembur/{id}', 'update')->name('lembur.update');
+            Route::post('/lembur/{id}/approve', 'approve')->name('lembur.approve');
+            Route::delete('/lembur/{id}', 'destroy')->name('lembur.destroy');
+        }
+        );
 
-    // Pegawai (READONLY)
-    Route::resource('pegawai', PegawaiController::class)->only('index', 'show', 'create', 'store', 'edit', 'update', 'destroy');
+        // Pegawai (READONLY)
+        Route::resource('pegawai', PegawaiController::class)->only('index', 'show', 'create', 'store', 'edit', 'update', 'destroy');
 
-    // Penggajian - HANYA untuk HR Officer (Human Resources)
-    // Petugas departemen lain tidak memiliki akses ke fitur ini
-    Route::middleware(['hr.only'])->controller(PenggajianController::class)->group(function () {
-        Route::get('/penggajian', 'index')->name('penggajian.index');
-        Route::get('/penggajian/{id}', 'show')->name('penggajian.show');
-        Route::post('/penggajian/calculate', 'calculate')->name('penggajian.calculate');
-        Route::post('/penggajian/{id}/pay', 'updateStatus')->name('penggajian.pay');
-        Route::post('/penggajian/bulk-pay', 'bulkPay')->name('penggajian.bulk-pay');
-    });
+        // Penggajian - HANYA untuk HR Officer (Human Resources)
+        // Petugas departemen lain tidak memiliki akses ke fitur ini
+        Route::middleware(['hr.only'])->controller(PenggajianController::class)->group(function () {
+            Route::get('/penggajian', 'index')->name('penggajian.index');
+            Route::get('/penggajian/{id}', 'show')->name('penggajian.show');
+            Route::post('/penggajian/calculate', 'calculate')->name('penggajian.calculate');
+            Route::post('/penggajian/{id}/pay', 'updateStatus')->name('penggajian.pay');
+            Route::post('/penggajian/bulk-pay', 'bulkPay')->name('penggajian.bulk-pay');
+        }
+        );
 
-    // Profile Settings
-    Route::controller(ProfileSettingController::class)->group(function () {
-        Route::get('/profile/settings', 'index')->name('profile-settings.index');
-        Route::put('/profile/settings', 'update')->name('profile-settings.update');
-    });
-});
+        // Profile Settings
+        Route::controller(ProfileSettingController::class)->group(function () {
+            Route::get('/profile/settings', 'index')->name('profile-settings.index');
+            Route::put('/profile/settings', 'update')->name('profile-settings.update');
+        }
+        );    });

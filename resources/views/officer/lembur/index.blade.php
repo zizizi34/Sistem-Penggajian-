@@ -10,9 +10,14 @@
 <div class="row">
   <div class="col-12">
     <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="card-title mb-0">Daftar Lembur Tim Saya</h4>
-        <span class="badge bg-primary">{{ $lembur->count() }} Data</span>
+      <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+        <h4 class="card-title fw-bold mb-0">Daftar Lembur Tim Saya</h4>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalBeriLembur">
+                <i class="bi bi-plus-circle me-1"></i> Beri Jatah Lembur
+            </button>
+            <span class="badge bg-light text-primary border border-primary px-3 py-2">{{ $lembur->count() }} Data</span>
+        </div>
       </div>
       <div class="card-body">
         @if($lembur->count() > 0)
@@ -122,7 +127,7 @@
     </div>
   </div>
 </div>
- @push('script')
+@push('script')
 <script>
     $(function() {
         $('.btn-approve-lembur').click(function(e) {
@@ -154,4 +159,52 @@
     });
 </script>
 @endpush
+
+{{-- Modal Beri Jatah Lembur --}}
+<div class="modal fade" id="modalBeriLembur" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('officers.lembur.store') }}" method="POST" id="formBeriLembur">
+            @csrf
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-megaphone me-2"></i>Beri Jatah Lembur (Notifikasi)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Pilih Pegawai</label>
+                            <select name="id_pegawai" class="form-select select2-basic" required>
+                                <option value="">-- Pilih Pegawai --</option>
+                                @foreach($employees as $emp)
+                                    <option value="{{ $emp->id_pegawai }}">{{ $emp->nama_pegawai }} ({{ $emp->nik_pegawai }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Tanggal Lembur</label>
+                            <input type="date" name="tanggal_lembur" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Pesan / Keterangan Lembur</label>
+                            <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: Tolong siapkan laporan keuangan bulanan malam ini."></textarea>
+                        </div>
+                    </div>
+                    <div class="alert alert-info border-0 mt-3 mb-0 small">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Pemberian jatah lembur akan membuat notifikasi bahwa pegawai diizinkan lembur.
+                        Jika pegawai lupa absen pulang, jam pulang otomatis akan diatur ke <strong> pukul 21:00</strong>.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">
+                        <i class="bi bi-send me-1"></i>Kirim Notifikasi Lembur
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection

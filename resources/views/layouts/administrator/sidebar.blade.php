@@ -71,12 +71,7 @@
 
     <li class="sidebar-title">Manajemen Akun</li>
 
-    <li class="sidebar-item {{ request()->routeIs('administrators.users.*') ? 'active' : '' }}">
-      <a href="{{ Route::has('administrators.users.index') ? route('administrators.users.index') : '#' }}" class="sidebar-link">
-        <i class="bi bi-person-badge-fill"></i>
-        <span>Administrator</span>
-      </a>
-    </li>
+    {{-- Menu Administrator dihapus karena tidak digunakan --}}
 
     <li class="sidebar-item {{ request()->routeIs('administrators.officers.*') ? 'active' : '' }}">
       <a href="{{ Route::has('administrators.officers.index') ? route('administrators.officers.index') : '#' }}" class="sidebar-link">

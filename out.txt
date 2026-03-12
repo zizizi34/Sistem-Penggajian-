@@ -1,0 +1,7 @@
+﻿Mismatch in resources/views\administrator\penggajian\index.blade.php: @if=3, @endif=5
+Mismatch in resources/views\officer\lembur\index.blade.php: @if=5, @endif=6
+Mismatch in resources/views\officer\pegawai\show.blade.php: @if=5, @endif=7
+Mismatch in resources/views\officer\penggajian\index.blade.php: @if=5, @endif=6
+Mismatch in resources/views\student\dashboard.blade.php: @if=4, @endif=5
+Mismatch in resources/views\student\attendance\index.blade.php: @if=9, @endif=10
+Mismatch in resources/views\student\payroll\index.blade.php: @if=2, @endif=3

@@ -144,11 +144,17 @@ class SalaryCalculationService
             $actualStart = $joinDate;
         }
 
-        $workingDays = $this->countWorkingDays($actualStart, $endDate, $hariKerja);
+        // Batasi rentang perhitungan hingga hari ini jika bulan berjalan
+        $actualEnd = $endDate->copy();
+        if ($actualEnd->isFuture()) {
+            $actualEnd = Carbon::now();
+        }
+
+        $workingDays = $this->countWorkingDays($actualStart, $actualEnd, $hariKerja);
 
         // Ambil data absensi dari database
         $absences = Absensi::where('id_pegawai', $pegawai->id_pegawai)
-            ->whereBetween('tanggal_absensi', [$startDate, $endDate])
+            ->whereBetween('tanggal_absensi', [$startDate, $actualEnd])
             ->get();
 
         $present = 0;
@@ -160,7 +166,7 @@ class SalaryCalculationService
         $autoOvertimeMinutes = 0;
 
         foreach ($absences as $absence) {
-            if ($absence->status === 'hadir') {
+            if (in_array($absence->status, ['hadir', 'Lupa Absen Pulang', 'Lembur tetapi Lupa Absen Pulang', 'Lembur'])) {
                 $present++;
                 
                 // 1. Cek keterlambatan (melebihi jam masuk + toleransi)
@@ -175,8 +181,10 @@ class SalaryCalculationService
                     }
                 }
 
-                // 2. Hitung Lembur Otomatis (jika pulang lebih lama dari jadwal)
-                if ($absence->jam_pulang) {
+                // 2. Hitung Lembur Otomatis (jika pulang lebih lama dari jadwal dan BELUM tercatat sebagai lembur resmi)
+                // Jika status sudah 'Lembur' atau 'Lembur tetapi Lupa Absen Pulang', 
+                // berarti sudah masuk ke tabel lembur dan dihitung di calculateOvertime()
+                if ($absence->jam_pulang && $absence->status === 'hadir') {
                     $exitTime = strtotime($absence->jam_pulang);
                     $scheduleExit = strtotime($standardOut);
                     
@@ -198,6 +206,16 @@ class SalaryCalculationService
                 $dailySalary = $pegawai->gaji_pokok / 22; // Asumsi 22 hari kerja
                 $deduction += $dailySalary;
             }
+        }
+
+        // Hitung Alpha (Hari Kerja - Semua Kehadiran yang Tercatat)
+        $totalRecordedDays = $present + $leave + $sick + $alpha;
+        $missingDays = max(0, $workingDays - $totalRecordedDays);
+        
+        if ($missingDays > 0) {
+            $alpha += $missingDays;
+            $dailySalary = $pegawai->gaji_pokok / 22; // Asumsi 22 hari kerja
+            $deduction += ($missingDays * $dailySalary);
         }
 
         return [

@@ -1,0 +1,150 @@
+[
+    {
+        "id_jabatan": 1,
+        "nama_jabatan": "Tech Lead"
+    },
+    {
+        "id_jabatan": 2,
+        "nama_jabatan": "Senior Developer"
+    },
+    {
+        "id_jabatan": 3,
+        "nama_jabatan": "Software Developer"
+    },
+    {
+        "id_jabatan": 4,
+        "nama_jabatan": "Junior Developer"
+    },
+    {
+        "id_jabatan": 5,
+        "nama_jabatan": "Frontend Developer"
+    },
+    {
+        "id_jabatan": 6,
+        "nama_jabatan": "Backend Developer"
+    },
+    {
+        "id_jabatan": 7,
+        "nama_jabatan": "Full Stack Developer"
+    },
+    {
+        "id_jabatan": 8,
+        "nama_jabatan": "Mobile Developer"
+    },
+    {
+        "id_jabatan": 9,
+        "nama_jabatan": "QA Lead"
+    },
+    {
+        "id_jabatan": 10,
+        "nama_jabatan": "Senior QA Engineer"
+    },
+    {
+        "id_jabatan": 11,
+        "nama_jabatan": "QA Engineer"
+    },
+    {
+        "id_jabatan": 12,
+        "nama_jabatan": "Junior QA Engineer"
+    },
+    {
+        "id_jabatan": 13,
+        "nama_jabatan": "Automation Test Engineer"
+    },
+    {
+        "id_jabatan": 14,
+        "nama_jabatan": "Manual Tester"
+    },
+    {
+        "id_jabatan": 15,
+        "nama_jabatan": "Infrastructure Manager"
+    },
+    {
+        "id_jabatan": 16,
+        "nama_jabatan": "DevOps Lead"
+    },
+    {
+        "id_jabatan": 17,
+        "nama_jabatan": "DevOps Engineer"
+    },
+    {
+        "id_jabatan": 18,
+        "nama_jabatan": "Cloud Engineer"
+    },
+    {
+        "id_jabatan": 19,
+        "nama_jabatan": "System Administrator"
+    },
+    {
+        "id_jabatan": 20,
+        "nama_jabatan": "Network Engineer"
+    },
+    {
+        "id_jabatan": 21,
+        "nama_jabatan": "Security Engineer"
+    },
+    {
+        "id_jabatan": 22,
+        "nama_jabatan": "Cybersecurity Analyst"
+    },
+    {
+        "id_jabatan": 23,
+        "nama_jabatan": "Head of Project Management"
+    },
+    {
+        "id_jabatan": 24,
+        "nama_jabatan": "Senior Project Manager"
+    },
+    {
+        "id_jabatan": 25,
+        "nama_jabatan": "Project Manager"
+    },
+    {
+        "id_jabatan": 26,
+        "nama_jabatan": "Scrum Master"
+    },
+    {
+        "id_jabatan": 27,
+        "nama_jabatan": "Product Manager"
+    },
+    {
+        "id_jabatan": 28,
+        "nama_jabatan": "Product Owner"
+    },
+    {
+        "id_jabatan": 29,
+        "nama_jabatan": "Project Coordinator"
+    },
+    {
+        "id_jabatan": 30,
+        "nama_jabatan": "HR Manager"
+    },
+    {
+        "id_jabatan": 31,
+        "nama_jabatan": "HR Business Partner"
+    },
+    {
+        "id_jabatan": 32,
+        "nama_jabatan": "HR Specialist"
+    },
+    {
+        "id_jabatan": 33,
+        "nama_jabatan": "HR Recruiter"
+    },
+    {
+        "id_jabatan": 34,
+        "nama_jabatan": "HR Officer"
+    },
+    {
+        "id_jabatan": 35,
+        "nama_jabatan": "HR Administrator"
+    },
+    {
+        "id_jabatan": 36,
+        "nama_jabatan": "Payroll Staff"
+    },
+    {
+        "id_jabatan": 37,
+        "nama_jabatan": "Payroll Manager"
+    }
+]
