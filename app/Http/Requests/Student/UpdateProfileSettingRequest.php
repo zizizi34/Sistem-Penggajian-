@@ -23,11 +23,15 @@ class UpdateProfileSettingRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = $this->user('student');
+        $idPegawai = $user->id_pegawai ?? null;
+        $idUser = $user->id_user ?? null;
+
         return [
-            'name' => 'required|string|min:3|max:255',
-            'email' => 'required|email|unique:students,email,'.$this->user('student')->id.'|min:3|max:255',
+            'name' => 'nullable|string|min:3|max:255',
+            'email' => 'nullable|email|min:3|max:255' . ($idUser ? '|unique:user,email_user,'.$idUser.',id_user' : ''),
             'password' => 'nullable|confirmed|min:3|max:255',
-            'phone_number' => 'required|numeric|unique:students,phone_number,'.$this->user('student')->id.'|digits_between:3,255',
+            'phone_number' => 'nullable|numeric|digits_between:3,255' . ($idPegawai ? '|unique:pegawai,no_hp,'.$idPegawai.',id_pegawai' : ''),
         ];
     }
 

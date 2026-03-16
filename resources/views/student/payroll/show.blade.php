@@ -186,15 +186,37 @@
       </div>
       <table class="slip-table">
         <tbody>
+          @if($rincianPotongan['alpha_count'] > 0)
           <tr>
-            <td class="label-col">Potongan Administratif (BPJS/Lain-lain)</td>
-            <td class="amount text-danger">- Rp {{ number_format($penggajian->total_potongan, 0, ',', '.') }}</td>
+            <td class="label-col">Potongan Mangkir/Alpha ({{ $rincianPotongan['alpha_count'] }} Hari)</td>
+            <td class="amount text-danger">- Rp {{ number_format($rincianPotongan['alpha_nominal'], 0, ',', '.') }}</td>
           </tr>
+          @endif
+          @if($rincianPotongan['telat_count'] > 0)
+          <tr>
+            <td class="label-col">Denda Keterlambatan ({{ $rincianPotongan['telat_count'] }} Kali)</td>
+            <td class="amount text-danger">- Rp {{ number_format($rincianPotongan['telat_nominal'], 0, ',', '.') }}</td>
+          </tr>
+          @endif
+          @foreach($rincianPotongan['lain_lain'] as $lain)
+          <tr>
+            <td class="label-col">{{ $lain['nama'] }}</td>
+            <td class="amount text-danger">- Rp {{ number_format($lain['nominal'], 0, ',', '.') }}</td>
+          </tr>
+          @endforeach
+          @if($rincianPotongan['alpha_count'] == 0 && $rincianPotongan['telat_count'] == 0 && count($rincianPotongan['lain_lain']) == 0)
+          <tr>
+            <td class="label-col">Potongan Administratif (Lain-lain)</td>
+            <td class="amount text-danger">- Rp 0</td>
+          </tr>
+          @endif
           <tr>
             <td class="label-col">Pajak Penghasilan (PPh 21)</td>
             <td class="amount text-danger">- Rp {{ number_format($penggajian->pajak_pph21, 0, ',', '.') }}</td>
           </tr>
-          @php $totalPotongan = $penggajian->total_potongan + $penggajian->pajak_pph21; @endphp
+          @php 
+            $totalPotongan = $rincianPotongan['alpha_nominal'] + $rincianPotongan['telat_nominal'] + $rincianPotongan['total_lain'] + $penggajian->pajak_pph21; 
+          @endphp
           <tr class="slip-total-row">
             <td style="color:#dc3545">Total Seluruh Potongan</td>
             <td class="amount text-danger">Rp {{ number_format($totalPotongan, 0, ',', '.') }}</td>

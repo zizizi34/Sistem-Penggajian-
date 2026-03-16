@@ -60,8 +60,15 @@ class SalaryCalculationService
             // 4. Hitung Potongan (selain PPh)
             $totalDeduction = $this->calculateDeductions($pegawai);
 
-            // 5. Hitung Gaji Bruto (sebelum pajak)
+            // 5. Singkronisasi Gaji Pokok dengan Jabatan Terakhir
+            // Jika jabatan ganti, pastikan gaji masuk dalam range jabatan baru
             $baseSalary = $pegawai->gaji_pokok;
+            if ($pegawai->jabatan) {
+                if ($baseSalary < $pegawai->jabatan->min_gaji || $baseSalary > $pegawai->jabatan->max_gaji) {
+                    $baseSalary = $pegawai->jabatan->min_gaji;
+                }
+            }
+
             $grossSalary = $baseSalary + $totalAllowance + $totalOvertimeNominal - $absenceData['deduction'];
 
             // 6. Hitung Pajak PPh 21

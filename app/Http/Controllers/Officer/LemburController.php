@@ -87,6 +87,15 @@ class LemburController extends BaseController
                 return back()->with('error', 'Lembur sudah ada untuk tanggal tersebut');
             }
 
+            $hasAbsenPulang = \App\Models\Absensi::where('id_pegawai', $validated['id_pegawai'])
+                ->whereDate('tanggal_absensi', $validated['tanggal_lembur'])
+                ->whereNotNull('jam_pulang')
+                ->exists();
+
+            if ($hasAbsenPulang) {
+                return back()->with('error', 'Pegawai sudah absen pulang, tidak bisa diberikan jadwal lembur.');
+            }
+
             $validated['status'] = 'pending';
             $lembur = Lembur::create($validated);
 

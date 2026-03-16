@@ -1,0 +1,5 @@
+Dept: 2, Hari: Senin-Jumat, Jam: 08:00:00 - 17:00:00
+Dept: 3, Hari: Senin-Jumat, Jam: 08:00:00 - 17:00:00
+Dept: 4, Hari: Senin-Jumat, Jam: 08:00:00 - 17:00:00
+Dept: 5, Hari: Senin-Jumat, Jam: 08:00:00 - 17:00:00
+Dept: 1, Hari: Senin-Jumat, Jam: 08:00:00 - 17:00:00

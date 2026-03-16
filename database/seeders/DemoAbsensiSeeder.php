@@ -21,7 +21,8 @@ class DemoAbsensiSeeder extends Seeder
 
         $pegawais = Pegawai::all();
         $startDate = Carbon::create(2026, 1, 1);
-        $endDate = Carbon::create(2026, 2, 28); // Hingga akhir februari
+        // Hingga KEMARIN - hari ini akan dihandle oleh masing-masing pegawai saat login
+        $endDate = Carbon::now()->subDay()->startOfDay();
 
         foreach ($pegawais as $pegawai) {
             // Mundurkan tgl_masuk ke 1 Januari 2026 
@@ -40,6 +41,7 @@ class DemoAbsensiSeeder extends Seeder
                 $rand = rand(1, 100);
                 
                 // Distribusi: 80% Hadir, 5% Terlambat, 5% Izin, 5% Sakit, 5% Alpha
+                // Alpha TIDAK di-insert di sini karena sistem akan auto-detect hari tanpa record sebagai alpha
                 if ($rand <= 80) {
                     Absensi::create([
                         'id_pegawai' => $pegawai->id_pegawai,
@@ -54,7 +56,8 @@ class DemoAbsensiSeeder extends Seeder
                         'tanggal_absensi' => $currentDate->format('Y-m-d'),
                         'jam_masuk' => '08:20:00', // Terlambat
                         'jam_pulang' => '17:00:00',
-                        'status' => 'terlambat',
+                        'status' => 'hadir', // Tetap hadir, tapi terlambat
+                        'keterangan' => 'Terlambat',
                     ]);
                 } elseif ($rand <= 90) {
                     Absensi::create([
@@ -70,26 +73,20 @@ class DemoAbsensiSeeder extends Seeder
                         'status' => 'sakit',
                         'keterangan' => 'Demam dan flu',
                     ]);
-                } else {
-                    // Alpha (Bisa record ke DB dengan status alpha, atau dikosongkan)
-                    // Kita insert sebagai alpha agar eksplisit terlihat di history
-                    Absensi::create([
-                        'id_pegawai' => $pegawai->id_pegawai,
-                        'tanggal_absensi' => $currentDate->format('Y-m-d'),
-                        'status' => 'alpha',
-                        'keterangan' => 'Tanpa Keterangan',
-                    ]);
                 }
+                // else: 5% Alpha - TIDAK di-insert, biarkan sistem auto-detect
                 
                 $currentDate->addDay();
             }
         }
 
-        // Hapus history penggajian bulan Februari dan Maret yang masih pending agar HR bisa hitung ulang
+        // Hapus history penggajian agar HR bisa hitung ulang
         DB::table('penggajian')->truncate();
 
-        $this->command->info('✅ Data absensi sebulan terakhir berhasil digenerate.');
+        $this->command->info('✅ Data absensi dari 1 Jan 2026 s/d kemarin (' . $endDate->format('d M Y') . ') berhasil digenerate.');
         $this->command->info('✅ Tgl Masuk pegawai di-set ke 1 Jan 2026.');
+        $this->command->info('✅ Alpha tidak di-insert - sistem akan auto-detect saat pegawai login.');
         $this->command->info('✅ Data penggajian di-reset. Silakan ke menu Penggajian -> Hitung Gaji kembali.');
     }
 }
+

@@ -81,6 +81,31 @@ class DashboardController extends Controller
            });
         }
 
+        $overtimeList = [];
+        $currentTime = \Carbon\Carbon::now();
+        foreach ($absensis as $ab) {
+            if (!$ab->jam_pulang) {
+                $jadwal = $jadwals[$ab->pegawai->id_departemen ?? null] ?? null;
+                $jadwalPulangTime = $jadwal ? \Carbon\Carbon::parse($jadwal->jam_pulang) : null;
+                
+                $activeLembur = $lemburList->where('id_pegawai', $ab->id_pegawai)
+                    ->where('status', 'pending')
+                    ->where('jam_selesai', null)
+                    ->first();
+
+                if ($activeLembur && $jadwalPulangTime && $currentTime->greaterThan($jadwalPulangTime)) {
+                    $ab->overtime_menit = $jadwalPulangTime->diffInMinutes($currentTime);
+                    $overtimeList[] = $ab;
+                }
+            }
+        }
+
+        $isHrOfficer = false;
+        if ($officer->departemen) {
+            $namaMyDept = strtolower($officer->departemen->nama_departemen);
+            $isHrOfficer = str_contains($namaMyDept, 'human resources') || str_contains($namaMyDept, 'hr');
+        }
+
         return view('officer.dashboard', [
             'totalPegawai' => $pegawaiQuery->count(),
             'totalDepartemen' => $isRestricted ? 1 : Departemen::count(),
@@ -90,8 +115,9 @@ class DashboardController extends Controller
             'totalHadir' => $absensis->whereIn('status', ['hadir', 'approved'])->count(),
             'recentAbsensi' => $absensis->sortByDesc('jam_masuk')->take(5),
             'terlambatList' => collect($terlambatList)->sortByDesc('jam_masuk')->values(),
-            'lemburList' => $lemburList,
-            'overtimeList' => collect([]),
+            'lemburList' => collect($lemburList),
+            'overtimeList' => collect($overtimeList),
+            'isHrOfficer' => $isHrOfficer
         ]);
     }
 }

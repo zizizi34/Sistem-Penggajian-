@@ -70,7 +70,7 @@
             <div class="col-12">
               <div class="mb-3">
                 <label for="password_confirmation" class="form-label">Konfirmasi Password:</label>
-                <input type="password_confirmation" class="form-control" name="password_confirmation"
+                <input type="password" class="form-control" name="password_confirmation"
                   placeholder="Ulangi password..">
                   @error('password_confirmation')
                 <div class="d-block invalid-feedback">

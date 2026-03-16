@@ -127,7 +127,7 @@
                                     'alpha' => 'danger',
                                     default => 'secondary'
                                 };
-                                $isPresentToday = in_array(strtolower($attendance->status), ['hadir', 'terlambat', 'lembur', 'pulang cepat', 'lupa absen pulang', 'lembur tetapi lupa absen pulang']);
+                                $isPresentToday = in_array(strtolower($attendance->status), ['hadir', 'terlambat', 'lembur', 'pulang cepat', 'lupa absen pulang', 'lembur tetapi lupa absen pulang']) && !is_null($attendance->jam_masuk);
                                 
                                 if ($isPresentToday) {
                                     $displayName = 'Hadir';
@@ -184,7 +184,7 @@
     <div class="col-12 col-xl-8 col-lg-7">
         <div class="card h-100 border-0 shadow-sm overflow-hidden" style="border-radius: 1.25rem;">
             <div class="card-body p-4">
-                <p class="text-uppercase tracking-wider fw-bold text-muted small mb-4 text-center">Ringkasan Bulan Ini</p>
+                <p class="text-uppercase tracking-wider fw-bold text-muted small mb-4 text-center">Ringkasan {{ $currentMonthName ?? 'Bulan Ini' }}</p>
                 <div class="row g-4 h-100 align-items-center">
                     <div class="col-4">
                         <div class="stats-card-inner p-3 rounded-4 bg-light-success h-100 d-flex flex-column align-items-center justify-content-center text-center">
@@ -300,7 +300,8 @@
                                     </td>
                                     <td>
                                         @php
-                                            $isPresent = in_array(strtolower($item->status), ['hadir', 'terlambat', 'lembur', 'pulang cepat', 'lupa absen pulang', 'lembur tetapi lupa absen pulang']);
+                                            $hasMasuk = !is_null($item->jam_masuk);
+                                            $isPresent = in_array(strtolower($item->status), ['hadir', 'terlambat', 'lembur', 'pulang cepat', 'lupa absen pulang', 'lembur tetapi lupa absen pulang']) && $hasMasuk;
                                             
                                             if ($isPresent) {
                                                 $statusText = 'Hadir';

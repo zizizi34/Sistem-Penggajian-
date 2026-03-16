@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\BaseController;
 use App\Models\Absensi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * AttendanceController - Student/Pegawai Self-Service
@@ -39,34 +40,205 @@ class AttendanceController extends BaseController
             $user = auth('student')->user();
             $pegawaiId = $user->id_pegawai;
             $today = now()->format('Y-m-d');
+            $todayCarbon = \Carbon\Carbon::now()->startOfDay();
 
-            // Absensi hari ini
+            // ============= AUTO-INSERT ALPHA UNTUK HARI YANG SUDAH LEWAT =============
+            // Ambil jadwal kerja untuk menentukan hari kerja
+            $jadwalForAlpha = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai?->id_departemen)->first();
+            $hariKerjaStr = $jadwalForAlpha ? ($jadwalForAlpha->hari ?? 'Senin-Jumat') : 'Senin-Jumat';
+
+            // Tentukan hari kerja yang allowed
+            $workingDaysMap = [
+                'senin' => 1, 'selasa' => 2, 'rabu' => 3, 'kamis' => 4,
+                'jumat' => 5, 'sabtu' => 6, 'minggu' => 0
+            ];
+            $allowedDays = [1, 2, 3, 4, 5]; // default Senin-Jumat
+            $hariStr = strtolower($hariKerjaStr);
+            if (str_contains($hariStr, '-')) {
+                $parts = array_map('trim', explode('-', $hariStr));
+                if (count($parts) == 2 && isset($workingDaysMap[$parts[0]]) && isset($workingDaysMap[$parts[1]])) {
+                    $allowedDays = [];
+                    $curr = $workingDaysMap[$parts[0]];
+                    $endDay = $workingDaysMap[$parts[1]];
+                    while (true) {
+                        $allowedDays[] = $curr % 7;
+                        if ($curr % 7 == $endDay % 7) break;
+                        $curr++;
+                        if ($curr > 14) break;
+                    }
+                }
+            }
+
+            // Tentukan tanggal mulai pengecekan alpha (dari tgl_masuk pegawai atau 3 bulan lalu, mana yang lebih baru)
+            $joinDate = $user->pegawai?->tgl_masuk
+                ? \Carbon\Carbon::parse($user->pegawai->tgl_masuk)->startOfDay()
+                : $todayCarbon->copy()->subMonths(3)->startOfDay();
+
+            // Batasi maksimum 6 bulan ke belakang agar tidak terlalu berat
+            $maxLookback = $todayCarbon->copy()->subMonths(6)->startOfDay();
+            $alphaCheckStart = $joinDate->greaterThan($maxLookback) ? $joinDate : $maxLookback;
+
+            // Tentukan tanggal akhir pengecekan (kemarin, atau hari ini jika sudah tutup)
+            // Hitung batas absensi hari ini
+            $jadwalForToday = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai?->id_departemen)->first();
+            $isLemburToday  = \App\Models\Lembur::where('id_pegawai', $pegawaiId)->whereDate('tanggal_lembur', $today)->exists();
+            $batasAbsensi   = $isLemburToday ? '21:00:00' : ($jadwalForToday->jam_pulang ?? '17:00:00');
+            $isClosedToday  = now()->format('H:i:s') > $batasAbsensi;
+            
+            $checkUntil = $isClosedToday ? $todayCarbon : $todayCarbon->copy()->subDay();
+
+            if ($alphaCheckStart->lessThanOrEqualTo($checkUntil)) {
+                $existingDates = Absensi::where('id_pegawai', $pegawaiId)
+                    ->whereBetween('tanggal_absensi', [
+                        $alphaCheckStart->format('Y-m-d'),
+                        $checkUntil->format('Y-m-d')
+                    ])
+                    ->pluck('tanggal_absensi')
+                    ->map(fn($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+                    ->toArray();
+
+                // Iterasi setiap hari dari alphaCheckStart sampai checkUntil
+                $checkPeriod = \Carbon\CarbonPeriod::create($alphaCheckStart, $checkUntil);
+                $alphaToInsert = [];
+                foreach ($checkPeriod as $date) {
+                    // Lewati hari non-kerja
+                    if (!in_array($date->dayOfWeek, $allowedDays)) {
+                        continue;
+                    }
+                    $dateStr = $date->format('Y-m-d');
+                    // Jika tidak ada record untuk tanggal ini, tandai sebagai alpha
+                    if (!in_array($dateStr, $existingDates)) {
+                        $alphaToInsert[] = [
+                            'id_pegawai'       => $pegawaiId,
+                            'tanggal_absensi'  => $dateStr,
+                            'status'           => 'alpha',
+                            'keterangan'       => 'Tanpa Keterangan',
+                            'created_at'       => now(),
+                            'updated_at'       => now(),
+                        ];
+                    }
+                }
+
+                // Batch insert alpha records jika ada
+                if (!empty($alphaToInsert)) {
+                    \Illuminate\Support\Facades\DB::table('absensi')->insertOrIgnore($alphaToInsert);
+                }
+            }
+            // ========================================================================
+
+            // Absensi hari ini (ambil setelah proses alpha selesai)
             $attendance = Absensi::where('id_pegawai', $pegawaiId)
                 ->whereDate('tanggal_absensi', $today)
                 ->first();
 
-            // Filter Tanggal - Pastikan ada default jika input kosong
-            $dateFrom = $request->filled('tanggal_dari') ? $request->tanggal_dari : \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
-            $dateTo   = $request->filled('tanggal_sampai') ? $request->tanggal_sampai : \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d');
+            // Filter Tanggal - Default ke bulan terakhir yang punya data (bukan selalu bulan ini)
+            if ($request->filled('tanggal_dari') || $request->filled('tanggal_sampai')) {
+                $dateFrom = $request->filled('tanggal_dari') ? $request->tanggal_dari : \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
+                $dateTo   = $request->filled('tanggal_sampai') ? $request->tanggal_sampai : \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d');
+            } else {
+                // Cek apakah bulan ini ada data
+                $currentMonthStart = \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
+                $currentMonthEnd   = \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d');
+                $currentMonthCount = Absensi::where('id_pegawai', $pegawaiId)
+                    ->whereBetween('tanggal_absensi', [$currentMonthStart, $currentMonthEnd])
+                    ->count();
 
-            // Ambil bulan dan tahun dari range (untuk default label)
-            $currentMonth = \Carbon\Carbon::parse($dateTo)->month;
-            $currentYear = \Carbon\Carbon::parse($dateTo)->year;
+                if ($currentMonthCount > 0) {
+                    // Bulan ini ada data → tampilkan bulan ini
+                    $dateFrom = $currentMonthStart;
+                    $dateTo   = $currentMonthEnd;
+                } else {
+                    // Bulan ini TIDAK ada data → cari bulan terakhir yang ada data
+                    $lastRecord = Absensi::where('id_pegawai', $pegawaiId)
+                        ->orderByDesc('tanggal_absensi')
+                        ->first();
+                    if ($lastRecord) {
+                        $lastDate = \Carbon\Carbon::parse($lastRecord->tanggal_absensi);
+                        $dateFrom = $lastDate->copy()->startOfMonth()->format('Y-m-d');
+                        $dateTo   = $lastDate->copy()->endOfMonth()->format('Y-m-d');
+                    } else {
+                        // Tidak ada data sama sekali
+                        $dateFrom = $currentMonthStart;
+                        $dateTo   = $currentMonthEnd;
+                    }
+                }
+            }
 
-            $totalHadir  = Absensi::where('id_pegawai', $pegawaiId)
-                ->whereBetween('tanggal_absensi', [$dateFrom, $dateTo])
-                ->whereIn('status', ['hadir', 'Hadir', 'terlambat', 'Terlambat', 'Lembur', 'lembur', 'Pulang Cepat', 'pulang cepat', 'Lupa Absen Pulang', 'lupa absen pulang', 'Lembur tetapi Lupa Absen Pulang'])->count();
 
-            $totalIzin   = Absensi::where('id_pegawai', $pegawaiId)
-                ->whereBetween('tanggal_absensi', [$dateFrom, $dateTo])
-                ->whereIn('status', ['izin', 'Izin', 'sakit', 'Sakit'])->count();
+            // Ambil label bulan
+            $currentMonthName = \Carbon\Carbon::parse($dateTo)->translatedFormat('F Y');
 
-            // Hitung Total Tidak Masuk berdasarkan data riwayat di database
-            $totalTidakMasuk = Absensi::where('id_pegawai', $pegawaiId)
-                ->whereBetween('tanggal_absensi', [$dateFrom, $dateTo])
-                ->whereIn('status', ['alpha', 'Alpha'])->count();
+            // Ambil jadwal kerja departemen (hanya SEKALI)
+            $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai?->id_departemen)->first();
 
-            $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
+            // Tentukan rentang AKTUAL untuk perhitungan statistik
+            // (tidak boleh melewati hari ini karena masa depan belum terjadi)
+            $startDate = \Carbon\Carbon::parse($dateFrom)->startOfDay();
+            $endDate   = \Carbon\Carbon::parse($dateTo)->startOfDay();
+            $today     = \Carbon\Carbon::now()->startOfDay();
+            if ($endDate->greaterThan($today)) {
+                $endDate = $today;
+            }
+
+            // Pertimbangkan tanggal masuk pegawai
+            $joinDate = $user->pegawai?->tgl_masuk
+                ? \Carbon\Carbon::parse($user->pegawai->tgl_masuk)->startOfDay()
+                : $startDate;
+            if ($joinDate->greaterThan($startDate)) {
+                $startDate = $joinDate;
+            }
+
+            // Hitung hari kerja yang sudah berlalu (dari startDate sampai today)
+            $workingDays = 0;
+            if ($startDate->lessThanOrEqualTo($endDate)) {
+                $workingDaysMap = [
+                    'senin' => 1, 'selasa' => 2, 'rabu' => 3, 'kamis' => 4,
+                    'jumat' => 5, 'sabtu' => 6, 'minggu' => 0
+                ];
+                $allowedDays = [1, 2, 3, 4, 5]; // Default Senin-Jumat
+                if ($jadwal && $jadwal->hari) {
+                    $hariStr = strtolower($jadwal->hari);
+                    if (str_contains($hariStr, '-')) {
+                        $parts = array_map('trim', explode('-', $hariStr));
+                        if (count($parts) == 2 && isset($workingDaysMap[$parts[0]]) && isset($workingDaysMap[$parts[1]])) {
+                            $allowedDays = [];
+                            $curr = $workingDaysMap[$parts[0]];
+                            $endDay = $workingDaysMap[$parts[1]];
+                            while (true) {
+                                $allowedDays[] = $curr % 7;
+                                if ($curr % 7 == $endDay % 7) break;
+                                $curr++;
+                                if ($curr > 14) break; // safety
+                            }
+                        }
+                    }
+                }
+                $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
+                foreach ($period as $date) {
+                    if (in_array($date->dayOfWeek, $allowedDays)) {
+                        $workingDays++;
+                    }
+                }
+            }
+
+            // Hitung statistik dari RANGE TANGGAL FILTER (bukan range aktual)
+            // agar angka yang ditampilkan sesuai dengan filter yang dipilih
+            $baseQuery = Absensi::where('id_pegawai', $pegawaiId)
+                ->whereBetween('tanggal_absensi', [$dateFrom, $dateTo]);
+
+            $totalHadir = (clone $baseQuery)->whereIn('status', [
+                'hadir', 'Hadir', 'terlambat', 'Terlambat', 'Lembur', 'lembur',
+                'Pulang Cepat', 'pulang cepat', 'Lupa Absen Pulang', 'lupa absen pulang',
+                'Lembur tetapi Lupa Absen Pulang'
+            ])->count();
+
+            $totalIzin = (clone $baseQuery)->whereIn('status', ['izin', 'Izin', 'sakit', 'Sakit'])->count();
+
+            $alphaRecorded = (clone $baseQuery)->whereIn('status', ['alpha', 'Alpha'])->count();
+
+            // Karena alpha sudah di-insert ke DB secara otomatis, kita cukup menggunakan count dari DB
+            $totalTidakMasuk = $alphaRecorded;
+
 
             // Query history dengan filter
             $query = Absensi::where('id_pegawai', $pegawaiId);
@@ -151,7 +323,8 @@ class AttendanceController extends BaseController
                 'totalTidakMasuk',
                 'overtimeNotification',
                 'isClosed',
-                'jadwal'
+                'jadwal',
+                'currentMonthName'
             ));
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -212,6 +385,7 @@ class AttendanceController extends BaseController
                 $unclosedAttendance = Absensi::where('id_pegawai', $pegawaiId)
                     ->where('tanggal_absensi', '<', $today)
                     ->whereNull('jam_pulang')
+                    ->whereNotNull('jam_masuk')
                     ->get();
 
                 foreach ($unclosedAttendance as $old) {
@@ -254,24 +428,35 @@ class AttendanceController extends BaseController
                     ]);
                 }
 
-                // Check if already checked in
-                $exists = Absensi::where('id_pegawai', $pegawaiId)
+                // Check if already checked in (exclude record with status 'alpha' because it can be overwritten)
+                $attendanceToday = Absensi::where('id_pegawai', $pegawaiId)
                     ->whereDate('tanggal_absensi', $today)
-                    ->exists();
+                    ->first();
 
-                if ($exists) {
+                if ($attendanceToday && !in_array($attendanceToday->status, ['alpha', 'Alpha'])) {
                     return back()->with('error', 'Anda sudah melakukan absensi masuk hari ini');
                 }
 
-                // Create
-                $absensi = Absensi::create([
-                    'id_pegawai' => $pegawaiId,
-                    'tanggal_absensi' => $today,
-                    'jam_masuk' => $time,
-                    'status' => 'hadir',
-                    'foto_masuk' => $photoPath,
-                    'catatan' => $validated['catatan'] ?? null,
-                ]);
+                if ($attendanceToday && in_array($attendanceToday->status, ['alpha', 'Alpha'])) {
+                    // Overwrite alpha record
+                    $attendanceToday->update([
+                        'jam_masuk' => $time,
+                        'status' => 'hadir',
+                        'foto_masuk' => $photoPath,
+                        'catatan' => $validated['catatan'] ?? null,
+                    ]);
+                    $absensi = $attendanceToday;
+                } else {
+                    // Create new
+                    $absensi = Absensi::create([
+                        'id_pegawai' => $pegawaiId,
+                        'tanggal_absensi' => $today,
+                        'jam_masuk' => $time,
+                        'status' => 'hadir',
+                        'foto_masuk' => $photoPath,
+                        'catatan' => $validated['catatan'] ?? null,
+                    ]);
+                }
 
                 // Log
                 $this->logActivity('create', 'Absensi', $absensi->id_absensi, 'Check-in attendance');
@@ -332,7 +517,13 @@ class AttendanceController extends BaseController
                     } else {
                         // Mereka pulang sebelum jadwal pulang normal padahal ada jatah lembur
                         // Maka batalkan lembur & status menjadi Pulang Cepat
-                        $lembur->update(['status' => 'rejected', 'keterangan' => '[Sistem] Pegawai pulang sebelum jadwal lembur dimulai']);
+                        $lembur->update([
+                            'status' => 'rejected', 
+                            'keterangan' => '[Sistem] Pegawai pulang cepat sebelum jadwal lembur di mulai',
+                            'jam_mulai' => $time,
+                            'jam_selesai' => $time,
+                            'durasi' => 0
+                        ]);
                         if ($time < $jadwalPulang) {
                             $statusAbsensi = 'Pulang Cepat';
                         }

@@ -6,6 +6,7 @@ use App\Http\Controllers\BaseController;
 use App\Models\Absensi;
 use App\Models\Pegawai;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Officer AbsensiController - Department Scoped
@@ -36,6 +37,84 @@ class AbsensiController extends BaseController
 
             $today = now()->format('Y-m-d');
             $currentTime = now()->format('H:i:s');
+            $todayCarbon = \Carbon\Carbon::now()->startOfDay();
+            $yesterday   = $todayCarbon->copy()->subDay();
+
+            // ===== AUTO-INSERT ALPHA UNTUK SEMUA PEGAWAI DI DEPARTEMEN =====
+            $jadwalDept = \App\Models\JadwalKerja::where('id_departemen', $departemenId)->first();
+            $hariKerjaStr = $jadwalDept ? ($jadwalDept->hari ?? 'Senin-Jumat') : 'Senin-Jumat';
+            $workingDaysMap = [
+                'senin' => 1, 'selasa' => 2, 'rabu' => 3, 'kamis' => 4,
+                'jumat' => 5, 'sabtu' => 6, 'minggu' => 0
+            ];
+            $allowedDaysOfficer = [1, 2, 3, 4, 5];
+            $hariStrOfficer = strtolower($hariKerjaStr);
+            if (str_contains($hariStrOfficer, '-')) {
+                $parts = array_map('trim', explode('-', $hariStrOfficer));
+                if (count($parts) == 2 && isset($workingDaysMap[$parts[0]]) && isset($workingDaysMap[$parts[1]])) {
+                    $allowedDaysOfficer = [];
+                    $curr = $workingDaysMap[$parts[0]];
+                    $endDay = $workingDaysMap[$parts[1]];
+                    while (true) {
+                        $allowedDaysOfficer[] = $curr % 7;
+                        if ($curr % 7 == $endDay % 7) break;
+                        $curr++;
+                        if ($curr > 14) break;
+                    }
+                }
+            }
+
+            // Ambil semua pegawai aktif di departemen ini
+            $pegawaiDept = Pegawai::where('id_departemen', $departemenId)
+                ->where('status_pegawai', 'aktif')
+                ->get();
+
+            foreach ($pegawaiDept as $pg) {
+                $pgJoinDate = $pg->tgl_masuk
+                    ? \Carbon\Carbon::parse($pg->tgl_masuk)->startOfDay()
+                    : $todayCarbon->copy()->subMonths(6)->startOfDay();
+                $maxLookback = $todayCarbon->copy()->subMonths(6)->startOfDay();
+                $alphaStart = $pgJoinDate->greaterThan($maxLookback) ? $pgJoinDate : $maxLookback;
+
+                // Tentukan batas absensi untuk pegawai ini (cek lembur)
+                $isPgLembur = \App\Models\Lembur::where('id_pegawai', $pg->id_pegawai)->whereDate('tanggal_lembur', $today)->exists();
+                $pgBatas    = $isPgLembur ? '21:00:00' : ($jadwalDept->jam_pulang ?? '17:00:00');
+                $isPgClosed = now()->format('H:i:s') > $pgBatas;
+                
+                $pgCheckUntil = $isPgClosed ? $todayCarbon : $yesterday;
+
+                if ($alphaStart->greaterThan($pgCheckUntil)) continue;
+
+                $existingPgDates = Absensi::where('id_pegawai', $pg->id_pegawai)
+                    ->whereBetween('tanggal_absensi', [
+                        $alphaStart->format('Y-m-d'),
+                        $pgCheckUntil->format('Y-m-d')
+                    ])
+                    ->pluck('tanggal_absensi')
+                    ->map(fn($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+                    ->toArray();
+
+                $alphaPeriod = \Carbon\CarbonPeriod::create($alphaStart, $pgCheckUntil);
+                $alphaRows = [];
+                foreach ($alphaPeriod as $date) {
+                    if (!in_array($date->dayOfWeek, $allowedDaysOfficer)) continue;
+                    $dateStr = $date->format('Y-m-d');
+                    if (!in_array($dateStr, $existingPgDates)) {
+                        $alphaRows[] = [
+                            'id_pegawai'      => $pg->id_pegawai,
+                            'tanggal_absensi' => $dateStr,
+                            'status'          => 'alpha',
+                            'keterangan'      => 'Tanpa Keterangan',
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ];
+                    }
+                }
+                if (!empty($alphaRows)) {
+                    DB::table('absensi')->insertOrIgnore($alphaRows);
+                }
+            }
+            // ================================================================
 
             // AUTO-CLOSE Logic for Today's unclosed records
             $openAttendances = Absensi::whereHas('pegawai', function ($q) use ($departemenId) {

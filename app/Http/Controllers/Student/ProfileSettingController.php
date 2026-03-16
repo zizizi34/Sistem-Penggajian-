@@ -13,7 +13,14 @@ class ProfileSettingController extends Controller
      */
     public function index()
     {
-        $myInformation = auth('student')->user();
+        $user = auth('student')->user();
+        $pegawai = $user->pegawai;
+        
+        $myInformation = (object) [
+            'name' => $pegawai->nama_pegawai ?? '',
+            'email' => $pegawai->email_pegawai ?? $user->email_user,
+            'phone_number' => $pegawai->no_hp ?? '',
+        ];
 
         return view('student.profile_setting.index', compact('myInformation'));
     }
@@ -23,15 +30,27 @@ class ProfileSettingController extends Controller
      */
     public function update(UpdateProfileSettingRequest $request)
     {
-        $student = Student::find(auth('student')->id());
+        $user = auth('student')->user();
+        $pegawai = $user->pegawai;
         $validated = $request->validated();
 
-        $student->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone_number' => $validated['phone_number'],
-            'password' => ! is_null($validated['password']) ? bcrypt($validated['password']) : $student->password,
-        ]);
+        if ($request->filled('password')) {
+            $user->update([
+                'password_user' => bcrypt($validated['password']),
+            ]);
+        }
+        
+        if ($pegawai) {
+            $pegawai->update([
+                'nama_pegawai' => $request->filled('name') ? $validated['name'] : $pegawai->nama_pegawai,
+                'email_pegawai' => $request->filled('email') ? $validated['email'] : $pegawai->email_pegawai,
+                'no_hp' => $request->filled('phone_number') ? $validated['phone_number'] : $pegawai->no_hp,
+            ]);
+        }
+
+        if ($request->filled('email')) {
+             $user->update(['email_user' => $validated['email']]);
+        }
 
         return redirect()->route('students.profile-settings.index')->with('success', 'Data berhasil diubah!');
     }
