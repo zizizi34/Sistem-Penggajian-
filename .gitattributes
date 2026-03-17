@@ -1,20 +1,24 @@
 * text=auto eol=lf
 
+# Force Blade files to be counted as PHP
 *.blade.php linguist-language=PHP
-*.css diff=css
-*.html diff=html
-*.md diff=markdown
-*.php diff=php
 
-# Ignore vendor and public assets from statistics
-public/css/* linguist-vendored
-public/js/* linguist-vendored
-public/images/* linguist-vendored
-public/vendor/* linguist-vendored
-public/extensions/* linguist-vendored
-public/fonts/* linguist-vendored
-public/build/* linguist-vendored
+# Treat all public assets as vendored (libraries, subfolders, compiled files)
+# Pakai ** agar subfolder di dalamnya juga ikut terhitung (seperti public/extensions)
+public/** linguist-vendored
+resources/css/** linguist-vendored
+resources/js/** linguist-vendored
 
+# Ignore documentation from code statistics (agar tidak muncul di bar)
+*.md linguist-documentation
+*.txt linguist-documentation
+
+# Ignore root helper files
+_ide_helper.php linguist-vendored
+_ide_helper_models.php linguist-vendored
+.phpstorm.meta.php linguist-vendored
+
+# Meta files
 /.github export-ignore
 CHANGELOG.md export-ignore
 .styleci.yml export-ignore
