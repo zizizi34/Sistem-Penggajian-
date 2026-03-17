@@ -1,1 +1,0 @@
-C:\laragon\www\sistem-penggajian\resources\views\authentication\login.blade.php

@@ -51,6 +51,16 @@
               </tbody>
             </table>
           </div>
+          <div class="mt-4 d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted small">
+                Showing {{ $absensi->firstItem() }} to {{ $absensi->lastItem() }} of {{ $absensi->total() }} results
+              </p>
+            </div>
+            <div>
+              {{ $absensi->links() }}
+            </div>
+          </div>
         @else
           <p class="text-center text-muted">Belum ada data absensi untuk tim Anda.</p>
         @endif

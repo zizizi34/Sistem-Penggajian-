@@ -170,9 +170,17 @@
                                 <tr>
                                     <td class="fw-semibold">{{ $item->pegawai?->nama_pegawai ?? '-' }}</td>
                                     <td>{{ $item->pegawai?->departemen?->nama_departemen ?? '-' }}</td>
-                                    <td><span class="badge bg-success badge-custom">{{ $item->jam_masuk }}</span></td>
                                     <td>
-                                        @if($item->jam_pulang)
+                                        @if(in_array(strtolower($item->status), ['izin', 'sakit']))
+                                            <span class="badge bg-warning badge-custom">{{ ucfirst($item->status) }}</span>
+                                        @else
+                                            <span class="badge bg-success badge-custom">{{ $item->jam_masuk ?? '-' }}</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if(in_array(strtolower($item->status), ['izin', 'sakit']))
+                                            <span class="text-muted small">-</span>
+                                        @elseif($item->jam_pulang)
                                             <span class="badge bg-secondary badge-custom">{{ $item->jam_pulang }}</span>
                                         @else
                                             <span class="text-muted small">Belum Pulang</span>

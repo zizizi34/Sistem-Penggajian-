@@ -181,7 +181,7 @@ class AbsensiController extends BaseController
                 $query->where('status', $request->status);
             }
 
-            $absensi = $query->orderBy('tanggal_absensi', 'desc')->get();
+            $absensi = $query->orderBy('tanggal_absensi', 'desc')->paginate(10);
 
             $this->logActivity('read', 'Absensi', null, 'View departemen absensi list');
 
