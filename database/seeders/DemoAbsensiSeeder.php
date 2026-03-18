@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Pegawai;
 use App\Models\Absensi;
+use App\Models\Lembur;
 use Carbon\Carbon;
 
 class DemoAbsensiSeeder extends Seeder
@@ -14,9 +15,10 @@ class DemoAbsensiSeeder extends Seeder
     {
         $this->command->info('=== MENGGENERATE DATA ABSENSI DEMO ===');
         
-        // Kosongkan tabel absensi
+        // Kosongkan tabel absensi dan lembur
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('absensi')->truncate();
+        DB::table('lembur')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $pegawais = Pegawai::all();
@@ -50,6 +52,25 @@ class DemoAbsensiSeeder extends Seeder
                         'jam_pulang' => '17:05:00',
                         'status' => 'hadir',
                     ]);
+
+                    // Ada kemungkinan lembur (15% jika hadir normal)
+                    if (rand(1, 100) <= 15) {
+                        $durasiLembur = rand(1, 3);
+                        $jamMulai = '17:00:00';
+                        $jamSelesai = Carbon::parse($jamMulai)->addHours($durasiLembur)->format('H:i:s');
+                        
+                        Lembur::create([
+                            'id_pegawai' => $pegawai->id_pegawai,
+                            'tanggal_lembur' => $currentDate->format('Y-m-d'),
+                            'jam_mulai' => $jamMulai,
+                            'jam_selesai' => $jamSelesai,
+                            'durasi' => $durasiLembur,
+                            'keterangan' => 'Lembur penyelesaian tugas tambahan',
+                            'status' => 'approved',
+                            'approved_at' => $currentDate->format('Y-m-d') . ' 20:00:00',
+                            'approved_by' => 1, // Super Admin
+                        ]);
+                    }
                 } elseif ($rand <= 85) {
                     Absensi::create([
                         'id_pegawai' => $pegawai->id_pegawai,
@@ -83,7 +104,7 @@ class DemoAbsensiSeeder extends Seeder
         // Hapus history penggajian agar HR bisa hitung ulang
         DB::table('penggajian')->truncate();
 
-        $this->command->info('✅ Data absensi dari 1 Jan 2026 s/d kemarin (' . $endDate->format('d M Y') . ') berhasil digenerate.');
+        $this->command->info('✅ Data absensi dan lembur dari 1 Jan 2026 s/d kemarin (' . $endDate->format('d M Y') . ') berhasil digenerate.');
         $this->command->info('✅ Tgl Masuk pegawai di-set ke 1 Jan 2026.');
         $this->command->info('✅ Alpha tidak di-insert - sistem akan auto-detect saat pegawai login.');
         $this->command->info('✅ Data penggajian di-reset. Silakan ke menu Penggajian -> Hitung Gaji kembali.');

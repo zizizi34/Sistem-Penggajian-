@@ -64,6 +64,61 @@
       padding-left: 1rem !important;
       padding-right: 1rem !important;
     }
+
+    /* Sidebar Background Color Customization */
+    .sidebar-wrapper {
+      background-color: #1C352D !important;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-wrapper .sidebar-header {
+      background-color: #1C352D !important;
+    }
+
+    .sidebar-wrapper .sidebar-title {
+      color: rgba(255, 255, 255, 0.8) !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-wrapper .sidebar-link {
+      color: rgba(255, 255, 255, 0.9) !important;
+      border-radius: 0.5rem !important;
+      margin: 2px 0;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-wrapper .sidebar-link i, 
+    .sidebar-wrapper .sidebar-link span {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .sidebar-wrapper .sidebar-link:hover {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .sidebar-wrapper .sidebar-item.active > .sidebar-link {
+      background-color: #ffffff !important;
+    }
+
+    .sidebar-wrapper .sidebar-item.active > .sidebar-link i,
+    .sidebar-wrapper .sidebar-item.active > .sidebar-link span {
+      color: #1C352D !important;
+    }
+
+    .sidebar-toggler.x i {
+      color: #ffffff !important;
+    }
+
+    /* Dashboard Background Color */
+    body {
+      background-color: #F8F8F8 !important;
+    }
+
+    #main {
+      background-color: #F8F8F8 !important;
+      min-height: 100vh;
+    }
   </style>
 </head>
 
