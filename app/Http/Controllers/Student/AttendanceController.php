@@ -81,8 +81,11 @@ class AttendanceController extends BaseController
             // Tentukan tanggal akhir pengecekan (kemarin, atau hari ini jika sudah tutup)
             // Hitung batas absensi hari ini
             $jadwalForToday = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai?->id_departemen)->first();
-            $isLemburToday  = \App\Models\Lembur::where('id_pegawai', $pegawaiId)->whereDate('tanggal_lembur', $today)->exists();
-            $batasAbsensi   = $isLemburToday ? '21:00:00' : ($jadwalForToday->jam_pulang ?? '17:00:00');
+            $lemburRecordForToday = \App\Models\Lembur::where('id_pegawai', $pegawaiId)->whereDate('tanggal_lembur', $today)->first();
+            $isLemburToday = $lemburRecordForToday ? true : false;
+            $batasAbsensi   = ($isLemburToday && $lemburRecordForToday->jam_selesai) 
+                ? $lemburRecordForToday->jam_selesai 
+                : ($isLemburToday ? '21:00:00' : ($jadwalForToday->jam_pulang ?? '17:00:00'));
             $isClosedToday  = now()->format('H:i:s') > $batasAbsensi;
             
             $checkUntil = $isClosedToday ? $todayCarbon : $todayCarbon->copy()->subDay();
@@ -264,11 +267,14 @@ class AttendanceController extends BaseController
             $history = $query->orderBy('tanggal_absensi', 'desc')->paginate(10)->withQueryString();
 
             // ============= LOGIC BATAS ABSENSI HARI INI =============
-            $isLembur = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+            $lemburRecordForTodayAlt = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
                 ->whereDate('tanggal_lembur', $today)
-                ->exists();
+                ->first();
+            $isLembur = $lemburRecordForTodayAlt ? true : false;
             
-            $batasAbsensi = $isLembur ? '21:00:00' : ($jadwal->jam_pulang ?? '17:00:00');
+            $batasAbsensi = ($isLembur && $lemburRecordForTodayAlt->jam_selesai) 
+                ? $lemburRecordForTodayAlt->jam_selesai 
+                : ($isLembur ? '21:00:00' : ($jadwal->jam_pulang ?? '17:00:00'));
             $isClosed = now()->format('H:i:s') > $batasAbsensi;
 
             // Rule 3: Jika sudah melewati batas dan belum absen pulang, auto-close sekarang
@@ -358,11 +364,14 @@ class AttendanceController extends BaseController
             $jadwal = \App\Models\JadwalKerja::where('id_departemen', $user->pegawai->id_departemen ?? null)->first();
             $jadwalPulang = $jadwal->jam_pulang ?? '17:00:00';
             
-            $hasLembur = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
+            $lemburRecordStore = \App\Models\Lembur::where('id_pegawai', $pegawaiId)
                 ->whereDate('tanggal_lembur', $today)
-                ->exists();
+                ->first();
+            $hasLembur = $lemburRecordStore ? true : false;
                 
-            $batasAbsensi = $hasLembur ? '21:00:00' : $jadwalPulang;
+            $batasAbsensi = ($hasLembur && $lemburRecordStore->jam_selesai) 
+                ? $lemburRecordStore->jam_selesai 
+                : ($hasLembur ? '21:00:00' : $jadwalPulang);
 
             // Jika sudah absen masuk & pulang hari ini, tidak boleh absen lagi
             $attendance = Absensi::where('id_pegawai', $pegawaiId)

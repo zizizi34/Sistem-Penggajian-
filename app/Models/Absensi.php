@@ -11,7 +11,12 @@ class Absensi extends Model
 
     protected $table = 'absensi';
     protected $primaryKey = 'id_absensi';
-    protected $fillable = ['id_pegawai', 'tanggal_absensi', 'jam_masuk', 'jam_pulang', 'status', 'keterangan', 'foto_masuk', 'foto_pulang'];
+    protected $fillable = [
+        'id_pegawai', 'tanggal_absensi', 'jam_masuk', 'jam_pulang', 
+        'status', 'keterangan', 'foto_masuk', 'foto_pulang',
+        'approved_at', 'approved_by',
+        'correction_requested', 'correction_type', 'correction_value', 'correction_reason', 'correction_requested_at'
+    ];
     public $timestamps = true;
 
     public function pegawai()

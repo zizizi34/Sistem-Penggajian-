@@ -169,7 +169,26 @@ class LemburController extends BaseController
             ]);
 
             $oldValues = $lembur->toArray();
+            
+            // Calculate duration
+            $jamMulai = \Carbon\Carbon::parse($lembur->tanggal_lembur . ' ' . $validated['jam_mulai']);
+            $jamSelesai = \Carbon\Carbon::parse($lembur->tanggal_lembur . ' ' . $validated['jam_selesai']);
+            $durasi = round($jamMulai->diffInMinutes($jamSelesai) / 60, 2);
+            $validated['durasi'] = max(0, $durasi);
+
             $lembur->update($validated);
+
+            // Sync with attendance if exists
+            $absensi = \App\Models\Absensi::where('id_pegawai', $lembur->id_pegawai)
+                ->whereDate('tanggal_absensi', $lembur->tanggal_lembur)
+                ->first();
+
+            if ($absensi) {
+                $absensi->update([
+                    'jam_pulang' => $validated['jam_selesai'],
+                    'status' => 'lembur'
+                ]);
+            }
 
             $this->logActivity('update', 'Lembur', $id, 'Update lembur', $oldValues, $lembur->toArray());
 
@@ -199,6 +218,21 @@ class LemburController extends BaseController
                 'approved_at' => now(),
                 'approved_by' => $officer->id,
             ]);
+
+            // Sync with attendance
+            $absensi = \App\Models\Absensi::where('id_pegawai', $lembur->id_pegawai)
+                ->whereDate('tanggal_absensi', $lembur->tanggal_lembur)
+                ->first();
+
+            if ($absensi) {
+                // If the employee hasn't clocked out yet, maybe don't force it?
+                // But usually, an officer approves AFTER the shift is over.
+                // Or if it was auto-closed, we update it.
+                $absensi->update([
+                    'jam_pulang' => $lembur->jam_selesai,
+                    'status' => 'lembur'
+                ]);
+            }
 
             $this->logActivity('update', 'Lembur', $id, 'Approve lembur', $oldValues, $lembur->toArray());
 

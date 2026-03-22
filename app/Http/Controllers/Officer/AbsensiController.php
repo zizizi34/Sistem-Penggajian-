@@ -77,8 +77,11 @@ class AbsensiController extends BaseController
                 $alphaStart = $pgJoinDate->greaterThan($maxLookback) ? $pgJoinDate : $maxLookback;
 
                 // Tentukan batas absensi untuk pegawai ini (cek lembur)
-                $isPgLembur = \App\Models\Lembur::where('id_pegawai', $pg->id_pegawai)->whereDate('tanggal_lembur', $today)->exists();
-                $pgBatas    = $isPgLembur ? '21:00:00' : ($jadwalDept->jam_pulang ?? '17:00:00');
+                $lemburRecordStore = \App\Models\Lembur::where('id_pegawai', $pg->id_pegawai)->whereDate('tanggal_lembur', $today)->first();
+                $isPgLembur = $lemburRecordStore ? true : false;
+                $pgBatas    = ($isPgLembur && $lemburRecordStore->jam_selesai) 
+                    ? $lemburRecordStore->jam_selesai 
+                    : ($isPgLembur ? '21:00:00' : ($jadwalDept->jam_pulang ?? '17:00:00'));
                 $isPgClosed = now()->format('H:i:s') > $pgBatas;
                 
                 $pgCheckUntil = $isPgClosed ? $todayCarbon : $yesterday;
@@ -127,11 +130,14 @@ class AbsensiController extends BaseController
             foreach ($openAttendances as $att) {
                 // Ambil jadwal kerja pegawai ini
                 $jadwal = \App\Models\JadwalKerja::where('id_departemen', $departemenId)->first();
-                $isLembur = \App\Models\Lembur::where('id_pegawai', $att->id_pegawai)
+                $lemburRecordForToday = \App\Models\Lembur::where('id_pegawai', $att->id_pegawai)
                     ->whereDate('tanggal_lembur', $today)
-                    ->exists();
+                    ->first();
+                $isLembur = $lemburRecordForToday ? true : false;
                 
-                $batasAbsensi = $isLembur ? '21:00:00' : ($jadwal->jam_pulang ?? '17:00:00');
+                $batasAbsensi = ($isLembur && $lemburRecordForToday->jam_selesai) 
+                    ? $lemburRecordForToday->jam_selesai 
+                    : ($isLembur ? '21:00:00' : ($jadwal->jam_pulang ?? '17:00:00'));
 
                 if ($currentTime > $batasAbsensi) {
                     $statusAbsensi = $isLembur ? 'Lembur tetapi Lupa Absen Pulang' : 'Lupa Absen Pulang';
@@ -267,10 +273,13 @@ class AbsensiController extends BaseController
                 $q->where('id_departemen', $departemenId);
             })->findOrFail($id);
 
-            // Prevent edit if approved
+            // Persetujuan ditiadakan berdasarkan permintaan user untuk penyederhanaan.
+            // Record absensi sekarang terbuka untuk dikelola oleh Officer.
+            /*
             if ($absensi->status === 'approved') {
                 return back()->with('error', 'Tidak bisa edit absensi yang sudah di-approve');
             }
+            */
 
             // Prevent izin if already clocked in
             if ($request->status === 'izin' && !empty($absensi->jam_masuk)) {

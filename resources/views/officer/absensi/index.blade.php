@@ -21,7 +21,6 @@
                   <th>Jam Masuk</th>
                   <th>Jam Pulang</th>
                   <th>Sistem Status</th>
-                  <th>Persetujuan (Status)</th>
                 </tr>
               </thead>
               <tbody>
@@ -39,11 +38,6 @@
                       default => 'secondary'
                     } }}">
                       {{ ucfirst($item->status ?? 'alpha') }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge bg-{{ $item->approved_at ? 'primary' : 'secondary' }}">
-                      {{ $item->approved_at ? 'Telah Disetujui' : 'Menunggu Persetujuan' }}
                     </span>
                   </td>
                 </tr>
