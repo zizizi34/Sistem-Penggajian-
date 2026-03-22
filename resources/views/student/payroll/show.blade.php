@@ -165,7 +165,7 @@
             <td class="amount text-dark">Rp {{ number_format($penggajian->gaji_pokok, 0, ',', '.') }}</td>
           </tr>
           <tr>
-            <td class="label-col">Voucher & Tunjangan Operasional</td>
+            <td class="label-col">Total Pendapatan Tunjangan</td>
             <td class="amount text-success">+ Rp {{ number_format($penggajian->total_tunjangan, 0, ',', '.') }}</td>
           </tr>
           <tr>

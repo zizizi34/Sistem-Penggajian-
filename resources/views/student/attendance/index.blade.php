@@ -340,36 +340,38 @@
                                         @php
                                             $remarks = [];
                                             
-                                            // 1. Deteksi Terlambat (Berdasarkan Jam Masuk vs Jadwal)
+                                            // 1. Deteksi Datang (Tepat Waktu / Terlambat)
                                             if($isPresent && $jadwal && $item->jam_masuk) {
                                                 $jamMasuk = \Carbon\Carbon::parse($item->jam_masuk);
                                                 $batasMasuk = \Carbon\Carbon::parse($jadwal->jam_masuk)->addMinutes($jadwal->toleransi_terlambat ?? 0);
                                                 if($jamMasuk->greaterThan($batasMasuk)) {
                                                     $remarks[] = 'Terlambat';
+                                                } else {
+                                                    $remarks[] = 'Tepat Waktu';
                                                 }
                                             }
                                             
-                                            // 2. Deteksi Pulang Cepat
-                                            if($item->status === 'Pulang Cepat' || ($item->jam_pulang && $jadwal && \Carbon\Carbon::parse($item->jam_pulang)->lt(\Carbon\Carbon::parse($jadwal->jam_pulang)))) {
-                                                $remarks[] = 'Pulang cepat';
+                                            // 2. Deteksi Pulang (Pulang Cepat)
+                                            if(strtolower($item->status) === 'pulang cepat' || ($item->jam_pulang && $jadwal && \Carbon\Carbon::parse($item->jam_pulang)->lt(\Carbon\Carbon::parse($jadwal->jam_pulang)))) {
+                                                $remarks[] = 'Pulang Cepat';
                                             }
                                             
-                                            // 3. Deteksi Lembur
-                                            if(str_contains($item->status, 'Lembur')) {
+                                            // 3. Deteksi Lembur (Case Insensitive)
+                                            if(str_contains(strtolower($item->status), 'lembur')) {
                                                 $remarks[] = 'Lembur';
                                             }
                                             
                                             // 4. Deteksi Lupa Absen Pulang (Jika tidak ada lembur)
-                                            if(str_contains($item->status, 'Lupa Absen Pulang') && !str_contains($item->status, 'Lembur')) {
-                                                $remarks[] = 'Lupa absen pulang';
+                                            if(str_contains(strtolower($item->status), 'lupa absen pulang') && !str_contains(strtolower($item->status), 'lembur')) {
+                                                $remarks[] = 'Lupa Absen Pulang';
                                             }
                                             
-                                            // 5. Izin/Sakit (Sebagai catatan)
-                                            if(!$isPresent && in_array($item->status, ['izin', 'sakit'])) {
+                                            // 5. Izin/Sakit
+                                            if(!$isPresent && in_array(strtolower($item->status), ['izin', 'sakit'])) {
                                                 $remarks[] = ucfirst($item->status);
                                             }
                                             
-                                            // Jika remarks kosong, tentukan teks default (Tepat Waktu vs Tanpa Keterangan)
+                                            // Teks Default jika remarks kosong
                                             $defaultText = $isPresent ? 'Tepat Waktu' : ($item->keterangan ?: ucfirst($item->status));
                                             $displayKeterangan = !empty($remarks) ? implode(', ', $remarks) : $defaultText;
                                         @endphp
