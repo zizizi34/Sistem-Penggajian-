@@ -16,7 +16,8 @@ class JabatanController extends Controller
             ->orderBy('id_departemen')
             ->orderBy('nama_jabatan')
             ->get();
-        return view('administrator.jabatan.index', compact('jabatan'));
+        $departemen = Departemen::all();
+        return view('administrator.jabatan.index', compact('jabatan', 'departemen'));
     }
 
     public function create()

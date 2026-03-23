@@ -17,8 +17,8 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Manager Departemen</label>
-          <p>{{ $departemen->manager_departemen ?? '-' }}</p>
+          <label class="form-label">Jumlah Petugas</label>
+          <p>{{ $departemen->officers()->count() }} Petugas</p>
         </div>
       </div>
     </div>

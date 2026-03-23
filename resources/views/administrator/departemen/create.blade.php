@@ -22,13 +22,6 @@
             @enderror
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Manager</label>
-            <input type="number" name="manager_departemen" class="form-control @error('manager_departemen') is-invalid @enderror" value="{{ old('manager_departemen') }}">
-            @error('manager_departemen')
-              <span class="invalid-feedback">{{ $message }}</span>
-            @enderror
-          </div>
 
           <div class="row">
             <div class="col-md-6">

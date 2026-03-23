@@ -119,6 +119,135 @@
       background-color: #F8F8F8 !important;
       min-height: 100vh;
     }
+
+    /* ─── MODERN MODAL STYLES ─────────────────────────── */
+    .modal-content {
+      border: none;
+      border-radius: 1.25rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      background-color: #ffffff;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid #edf2f7;
+      padding: 1.5rem 2rem;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+    }
+
+    .modal-header .modal-title {
+      font-weight: 700;
+      color: #1C352D;
+      font-size: 1.25rem;
+      letter-spacing: -0.025em;
+    }
+
+    .modal-header .btn-close {
+      background-color: #f7fafc;
+      padding: 0.75rem;
+      border-radius: 50%;
+      transition: all 0.2s;
+      opacity: 0.8;
+    }
+
+    .modal-header .btn-close:hover {
+      background-color: #edf2f7;
+      transform: rotate(90deg);
+      opacity: 1;
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    .modal-footer {
+      border-top: 1px solid #edf2f7;
+      padding: 1.25rem 2rem;
+      background-color: #f8fafc;
+    }
+
+    /* Form Modernization */
+    .form-label {
+      font-weight: 600;
+      color: #4a5568;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .form-control, .form-select {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background-color: #f8fafc;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #1C352D;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(28, 53, 45, 0.1);
+      outline: none;
+    }
+
+    .input-group-text {
+      background-color: #f1f5f9;
+      border: 1.5px solid #e2e8f0;
+      border-right: none;
+      border-radius: 0.75rem 0 0 0.75rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .input-group > .form-control {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    /* Modern Buttons inside Modal */
+    .modal-footer .btn {
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      border-radius: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .btn-submit-modal {
+      background-color: #1C352D;
+      color: white;
+      border: none;
+    }
+
+    .btn-submit-modal:hover {
+      background-color: #142a24;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(28, 53, 45, 0.2);
+    }
+
+    .btn-cancel-modal {
+      background-color: #ffffff;
+      color: #718096;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn-cancel-modal:hover {
+      background-color: #f7fafc;
+      color: #2d3748;
+    }
+
+    /* Custom Animation for Modals */
+    .modal.fade .modal-dialog {
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal.show .modal-dialog {
+      transform: scale(1) translateY(0);
+    }
   </style>
 </head>
 

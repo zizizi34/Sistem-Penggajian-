@@ -12,7 +12,7 @@ class DepartemenController extends Controller
 {
     public function index()
     {
-        $departemen = Departemen::all();
+        $departemen = Departemen::withCount('officers')->get();
         return view('administrator.departemen.index', compact('departemen'));
     }
 
@@ -25,7 +25,6 @@ class DepartemenController extends Controller
     {
         Departemen::create($request->validate([
             'nama_departemen' => 'required|string',
-            'manager_departemen' => 'nullable|integer'
         ]));
         return redirect()->route('administrators.departemen.index')->with('success', 'Departemen berhasil ditambah');
     }
@@ -47,7 +46,6 @@ class DepartemenController extends Controller
         $departemen = Departemen::findOrFail($id);
         $departemen->update($request->validate([
             'nama_departemen' => 'required|string',
-            'manager_departemen' => 'nullable|integer'
         ]));
         return redirect()->route('administrators.departemen.index')->with('success', 'Departemen berhasil diubah');
     }

@@ -19,16 +19,16 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         $this->call([
-            RoleAndPermissionSeeder::class,
-            CreateSuperAdminSeeder::class,
-            AdministratorSeeder::class,
-            CommoditySeeder::class,
-            ProgramStudySeeder::class,
-            SchoolClassSeeder::class,
+            RoleAndPermissionSeeder::class ,
+            CreateSuperAdminSeeder::class ,
+            AdministratorSeeder::class ,
+            CommoditySeeder::class ,
+            ProgramStudySeeder::class ,
+            SchoolClassSeeder::class ,
             // SubjectSeeder::class,
-            StudentSeeder::class,
-            OfficerSeeder::class,
-            BorrowingSeeder::class,
+            StudentSeeder::class ,
+            OfficerSeeder::class ,
+            BorrowingSeeder::class ,
         ]);
     }
 }

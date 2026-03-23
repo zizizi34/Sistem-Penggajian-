@@ -23,7 +23,14 @@ class PegawaiController extends Controller
         }
         
         $pegawai = $query->get();
-        return view('officer.pegawai.index', compact('pegawai'));
+        
+        // Data for modals
+        $jabatan = Jabatan::where('id_departemen', $officer->id_departemen)
+            ->orderBy('nama_jabatan')
+            ->get();
+        $ptkpStatus = PtkpStatus::all();
+
+        return view('officer.pegawai.index', compact('pegawai', 'jabatan', 'ptkpStatus'));
     }
 
     public function show($id)
