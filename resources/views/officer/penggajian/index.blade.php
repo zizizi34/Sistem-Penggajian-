@@ -185,12 +185,12 @@
 {{-- Modal --}}
 <div class="modal fade" id="modalHitungGaji" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow">
+    <div class="modal-content">
       <form method="POST" action="{{ route('officers.penggajian.calculate') }}">
         @csrf
-        <div class="modal-header bg-primary text-white">
+        <div class="modal-header">
           <h5 class="modal-title"><i class="bi bi-calculator me-2"></i>Hitung Gaji Bulanan</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="alert alert-warning border-0 d-flex align-items-center" style="font-size: 0.85rem;">
@@ -198,12 +198,12 @@
             <div>Sistem hanya akan menghitung gaji jika <strong>data absensi</strong> di bulan tersebut sudah tersedia.</div>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold small">Periode Penggajian <span class="text-danger">*</span></label>
+            <label class="form-label">Periode Penggajian <span class="text-danger">*</span></label>
             <input type="month" name="periode" class="form-control" value="{{ now()->format('Y-m') }}" required>
             <div class="form-text small">Pilih bulan yang ingin diproses (tidak boleh bulan depan).</div>
           </div>
           <div class="mb-0">
-            <label class="form-label fw-bold small">Filter Departemen (Opsional)</label>
+            <label class="form-label">Filter Departemen (Opsional)</label>
             <select name="departemen_id" class="form-select">
               <option value="">-- Semua Departemen --</option>
               @foreach($departemens as $dept)
@@ -212,9 +212,9 @@
             </select>
           </div>
         </div>
-        <div class="modal-footer bg-light p-2">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary btn-sm px-3">
+        <div class="modal-footer">
+          <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-submit-modal">
             <i class="bi bi-play-fill me-1"></i> Jalankan Hitung
           </button>
         </div>

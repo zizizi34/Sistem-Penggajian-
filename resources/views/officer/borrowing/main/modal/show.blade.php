@@ -129,7 +129,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary close-button" data-bs-dismiss="modal">Tutup</button>
+          <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Tutup</button>
         </div>
       </div>
     </div>

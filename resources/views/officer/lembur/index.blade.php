@@ -165,15 +165,15 @@
     <div class="modal-dialog modal-lg">
         <form action="{{ route('officers.lembur.store') }}" method="POST" id="formBeriLembur">
             @csrf
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white py-3">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-megaphone me-2"></i>Beri Jatah Lembur (Notifikasi)</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-megaphone me-2"></i>Beri Jatah Lembur (Notifikasi)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="form-label fw-semibold">Pilih Pegawai</label>
+                            <label class="form-label">Pilih Pegawai</label>
                             <select name="id_pegawai" class="form-select select2-basic" required>
                                 <option value="">-- Pilih Pegawai --</option>
                                 @foreach($employees as $emp)
@@ -182,11 +182,11 @@
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label fw-semibold">Tanggal Lembur</label>
+                            <label class="form-label">Tanggal Lembur</label>
                             <input type="date" name="tanggal_lembur" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold">Pesan / Keterangan Lembur</label>
+                            <label class="form-label">Pesan / Keterangan Lembur</label>
                             <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: Tolong siapkan laporan keuangan bulanan malam ini."></textarea>
                         </div>
                     </div>
@@ -196,9 +196,9 @@
                         Jika pegawai lupa absen pulang, jam pulang otomatis akan diatur ke <strong> pukul 21:00</strong>.
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary px-4 fw-bold">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-submit-modal">
                         <i class="bi bi-send me-1"></i>Kirim Notifikasi Lembur
                     </button>
                 </div>

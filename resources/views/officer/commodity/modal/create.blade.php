@@ -24,10 +24,11 @@
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary close-button" data-bs-dismiss="modal">Tutup</button>
-            <button type="submit" class="btn btn-success">Tambah</button>
-          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-submit-modal">Tambah</button>
+        </div>
         </form>
       </div>
     </div>
