@@ -25,40 +25,39 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
-            
-            // User information
-            $table->unsignedBigInteger('user_id')->index();
-            $table->string('user_type')->comment('Super Admin|Petugas|Pegawai');
-            $table->string('user_email')->nullable();
-            $table->string('user_name')->nullable();
-            
-            // Activity information
-            $table->string('action')->comment('create|read|update|delete|approve');
-            $table->string('model')->comment('Absensi|Lembur|Penggajian|etc');
-            $table->unsignedBigInteger('model_id')->nullable();
-            $table->text('description')->nullable();
-            
-            // Change tracking
-            $table->json('old_values')->nullable();
-            $table->json('new_values')->nullable();
-            
-            // Request information
-            $table->string('ip_address')->nullable();
-            $table->text('user_agent')->nullable();
-            $table->string('method')->nullable()->comment('GET|POST|PUT|DELETE');
-            $table->string('url')->nullable();
-            $table->integer('response_code')->nullable();
-            
-            // Timestamps
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
-            
-            // Indexes untuk quick filtering
-            $table->index(['user_id', 'created_at']);
-            $table->index(['action', 'model']);
-            $table->index(['model', 'model_id']);
-        });
+    $table->id();
+    
+    // User information
+    $table->unsignedBigInteger('user_id')->index();
+    $table->string('user_type', 50)->comment('Super Admin|Petugas|Pegawai');
+    $table->string('user_email', 150)->nullable();
+    $table->string('user_name', 100)->nullable();
+    
+    // Activity information
+    $table->string('action', 50)->comment('create|read|update|delete|approve');
+    $table->string('model', 100)->comment('Absensi|Lembur|Penggajian|etc');
+    $table->unsignedBigInteger('model_id')->nullable();
+    $table->text('description')->nullable();
+    
+    // Change tracking
+    $table->json('old_values')->nullable();
+    $table->json('new_values')->nullable();
+    
+    // Request information
+    $table->string('ip_address', 45)->nullable(); // support IPv6
+    $table->text('user_agent')->nullable();
+    $table->string('method', 10)->nullable();
+    $table->string('url', 255)->nullable();
+    $table->integer('response_code')->nullable();
+    
+    // Timestamps
+    $table->timestamps();
+    
+    // Indexes (SUDAH AMAN)
+    $table->index(['user_id', 'created_at']);
+    $table->index(['action', 'model']);
+    $table->index(['model', 'model_id']);
+});
     }
 
     /**
