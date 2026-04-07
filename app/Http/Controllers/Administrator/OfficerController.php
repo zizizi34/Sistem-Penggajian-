@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Administrator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Administrator\StoreOfficerRequest;
+use App\Http\Requests\Administrator\UpdateOfficerRequest;
 use App\Models\Officer;
 use App\Models\Departemen;
 use Illuminate\Http\Request;
@@ -42,15 +43,22 @@ class OfficerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Officer $officer)
+    public function update(UpdateOfficerRequest $request, Officer $officer)
     {
-        $officer->update([
-            'id_departemen' => $request->id_departemen,
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => !is_null($request->password) ? bcrypt($request->password) : $officer->password,
-            'phone_number' => $request->phone_number,
-        ]);
+        $validated = $request->validated();
+        
+        $data = [
+            'id_departemen' => $validated['id_departemen'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone_number'],
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($validated['password']);
+        }
+
+        $officer->update($data);
 
         return redirect()->route('administrators.officers.index')->with('success', 'Data berhasil diubah!');
     }

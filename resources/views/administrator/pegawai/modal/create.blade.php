@@ -33,9 +33,9 @@
                         <div class="col-md-6 mb-4">
                             <label for="create_id_jabatan" class="form-label">Jabatan <span class="text-danger">*</span></label>
                             <select class="form-select" id="create_id_jabatan" name="id_jabatan" required>
-                                <option value="">Pilih Jabatan</option>
+                                <option value="">Pilih Departemen Terlebih Dahulu</option>
                                 @foreach($jabatans as $jab)
-                                    <option value="{{ $jab->id_jabatan }}">{{ $jab->nama_jabatan }}</option>
+                                    <option value="{{ $jab->id_jabatan }}" class="jabatan-option" data-departemen="{{ $jab->id_departemen }}" style="display:none;">{{ $jab->nama_jabatan }}</option>
                                 @endforeach
                             </select>
                         </div>

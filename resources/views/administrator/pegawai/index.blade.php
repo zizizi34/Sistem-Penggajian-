@@ -126,6 +126,33 @@
                 $('#modalTambahPegawai').modal('show');
             @endif
         @endif
+
+        // Filter Jabatan berdasarkan Departemen pada Tambah Pegawai
+        $('#create_id_departemen').change(function() {
+            const selectedDept = $(this).val();
+            const jabatanSelect = $('#create_id_jabatan');
+            
+            jabatanSelect.val('');
+            
+            if (selectedDept) {
+                jabatanSelect.find('option:first').text('Pilih Jabatan');
+                jabatanSelect.find('.jabatan-option').each(function() {
+                    if ($(this).data('departemen') == selectedDept) {
+                        $(this).show().prop('disabled', false);
+                    } else {
+                        $(this).hide().prop('disabled', true);
+                    }
+                });
+            } else {
+                jabatanSelect.find('option:first').text('Pilih Departemen Terlebih Dahulu');
+                jabatanSelect.find('.jabatan-option').hide().prop('disabled', true);
+            }
+        });
+
+        // Trigger on load if there's old input
+        if ($('#create_id_departemen').val()) {
+            $('#create_id_departemen').trigger('change');
+        }
     });
 </script>
 @endpush

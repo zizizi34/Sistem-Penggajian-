@@ -42,7 +42,12 @@
                 <td>
                   <div class="btn-group gap-1">
                     <button type="button" class="btn btn-sm btn-success editOfficerButton" data-bs-toggle="modal"
-                      data-id="{{ $officer->id }}" data-bs-target="#editOfficerModal">
+                      data-id="{{ $officer->id }}" 
+                      data-name="{{ $officer->name }}"
+                      data-email="{{ $officer->email }}"
+                      data-id_departemen="{{ $officer->id_departemen }}"
+                      data-phone_number="{{ $officer->phone_number }}"
+                      data-bs-target="#editOfficerModal">
                       <i class="bi bi-pencil-fill"></i>
                     </button>
 
