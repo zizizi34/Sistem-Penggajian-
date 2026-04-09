@@ -67,7 +67,7 @@
                         title="Edit Data">
                         <i class="bi bi-pencil"></i>
                       </button>
-                      <button type="button" class="btn btn-danger btn-delete" 
+                      <button type="button" class="btn btn-danger" 
                         data-delete-action="{{ route('administrators.pegawai.destroy', $item->id_pegawai) }}"
                         data-delete-item="{{ $item->nama_pegawai }}"
                         data-delete-category="Pegawai"

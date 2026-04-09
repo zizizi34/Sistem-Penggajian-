@@ -11,6 +11,43 @@
         <h4 class="card-title">Daftar Absensi Tim Saya</h4>
       </div>
       <div class="card-body">
+        <form action="{{ route('officers.absensi.index') }}" method="GET" class="mb-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold text-uppercase">Dari Tanggal</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar-event"></i></span>
+                <input type="date" name="tanggal_dari" class="form-control border-start-0" value="{{ request('tanggal_dari') }}">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold text-uppercase">Sampai Tanggal</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar-check"></i></span>
+                <input type="date" name="tanggal_sampai" class="form-control border-start-0" value="{{ request('tanggal_sampai') }}">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold text-uppercase">Status</label>
+              <select name="status" class="form-select">
+                <option value="">Semua Status</option>
+                <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir</option>
+                <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit</option>
+                <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin</option>
+                <option value="alpha" {{ request('status') == 'alpha' ? 'selected' : '' }}>Alpha</option>
+              </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-grow-1">
+                <i class="bi bi-filter me-1"></i> Filter
+              </button>
+              <a href="{{ route('officers.absensi.index') }}" class="btn btn-light-secondary flex-grow-1">
+                <i class="bi bi-arrow-clockwise me-1"></i> Reset
+              </a>
+            </div>
+          </div>
+        </form>
+
         @if($absensi->count() > 0)
           <div class="table-responsive">
             <table class="table table-hover">

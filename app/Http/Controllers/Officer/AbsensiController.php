@@ -175,15 +175,15 @@ class AbsensiController extends BaseController
                 $q->where('id_departemen', $departemenId);
             })->with(['pegawai.departemen']);
 
-            if ($request->has('tanggal_dari')) {
+            if ($request->filled('tanggal_dari')) {
                 $query->whereDate('tanggal_absensi', '>=', $request->tanggal_dari);
             }
 
-            if ($request->has('tanggal_sampai')) {
+            if ($request->filled('tanggal_sampai')) {
                 $query->whereDate('tanggal_absensi', '<=', $request->tanggal_sampai);
             }
 
-            if ($request->has('status')) {
+            if ($request->filled('status')) {
                 $query->where('status', $request->status);
             }
 

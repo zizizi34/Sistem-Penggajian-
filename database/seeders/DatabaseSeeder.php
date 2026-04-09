@@ -12,12 +12,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RoleAndPermissionSeeder::class ,
-            CreateSuperAdminSeeder::class ,
-            AdministratorSeeder::class ,
-            DemoPayrollSeeder::class, // Membuat Departemen & Jabatan
-            DepartemenOfficerSeeder::class , // Membuat Petugas untuk tiap Departemen
-            PegawaiSeeder::class , // Membuat Karyawan
+            RoleAndPermissionSeeder::class,
+            CreateSuperAdminSeeder::class,
+            AdministratorSeeder::class,
+            MasterDataSeeder::class, // Isi data Master (Departemen, Jabatan, dll)
+            PegawaiSeeder::class,    // Isi data Pegawai
+            DepartemenOfficerSeeder::class, // Membuat Petugas untuk tiap Departemen
+            AbsensiSeeder::class,    // Isi data Absensi Jan-Mar 2026
         ]);
     }
 }

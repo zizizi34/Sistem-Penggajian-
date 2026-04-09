@@ -51,12 +51,13 @@
                       <i class="bi bi-pencil-fill"></i>
                     </button>
 
-                    <form action="{{ route('administrators.officers.destroy', $officer) }}" method="POST">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-danger btn-delete"><i
-                          class="bi bi-trash-fill"></i></button>
-                    </form>
+                    <button type="button" class="btn btn-sm btn-danger"
+                      data-delete-action="{{ route('administrators.officers.destroy', $officer) }}"
+                      data-delete-item="{{ $officer->name }}"
+                      data-delete-category="Petugas"
+                      title="Hapus Data">
+                      <i class="bi bi-trash-fill"></i>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -68,6 +69,7 @@
     </div>
   </div>
 </section>
+@include('components.delete-confirmation-modal')
 @endsection
 
 @push('modal')
